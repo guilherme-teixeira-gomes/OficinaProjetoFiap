@@ -10,7 +10,7 @@ interface CreateClientDTO {
   phone: string;
 }
 
-export class CreateClientService {
+export class ClientService {
 
   async execute(data: CreateClientDTO) {
 
@@ -29,4 +29,15 @@ export class CreateClientService {
     return client;
   }
 
+  async list() {
+    return ClientRepository.find({ relations: ["vehicles", "orders"] });
+  }
+
+  async getById(id: number) {
+    return ClientRepository.findOne({ where: { id }, relations: ["vehicles", "orders"] });
+  }
+
+  async getByDocument(document: string) {
+    return ClientRepository.findOne({ where: { document }, relations: ["vehicles", "orders"] });
+  }
 }

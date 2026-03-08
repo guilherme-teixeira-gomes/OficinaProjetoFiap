@@ -1,11 +1,9 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Client } from "./Client";
-
-
+import { ServiceOrder } from "./ServiceOrder";
 
 @Entity("vehicles")
 export class Vehicle {
-
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -24,4 +22,6 @@ export class Vehicle {
   @ManyToOne(() => Client, (client) => client.vehicles)
   client: Client;
 
+  @OneToMany(() => ServiceOrder, (order) => order.vehicle)
+  orders: ServiceOrder[];
 }

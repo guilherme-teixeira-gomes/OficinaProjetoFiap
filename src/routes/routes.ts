@@ -1,15 +1,48 @@
 import { Router } from "express";
-import { CreateClientController } from "../controllers/CreateClientController";
 import { AuthMiddleware } from "../middlewares/AuthMiddleware";
+import { ClientController } from "../controllers/ClientController";
+import { ServiceOrderController } from "../controllers/ServiceOrderController";
+import { VehicleController } from "../controllers/VehiclesController.ts";
+import { PartController } from "../controllers/PartController";
+import { ServiceController } from "../controllers/ServiceController";
 
 
 
 export const routes = Router();
 routes.get('/static')
-routes.post("/clients", new CreateClientController().handle); 
-routes.use(AuthMiddleware)
 
-routes.get('',);
-routes.put(":id", ); 
-routes.delete(":id", );
+// Criação de clientes
+routes.post("/clients", new ClientController().handle);  // postman ok 
+routes.get("/clients", new ClientController().list); // postman ok 
+routes.get("/clients/:id", new ClientController().get); // postman ok 
+routes.get("/clients/document/:document", new ClientController().getDocument);
+
+// Criação de ordem de serviço
+routes.post("/service-order", new ServiceOrderController().handle); // postman ok 
+routes.get("/service-order", new ServiceOrderController().list); // postman ok 
+routes.get("/service-order/:id", new ServiceOrderController().get); // postman ok 
+
+// Atualizar status da OS
+routes.patch("/service-order/:id/status", new ServiceOrderController().updateStatus); // postman ok 
+
+// Criação de veiculos
+routes.post("/vehicles", new VehicleController().handle); // postman ok 
+routes.get("/vehicles", new VehicleController().list);  // postman ok 
+routes.get("/vehicles/:id", new VehicleController().get);  // postman ok 
+
+// Criação de pecas
+routes.post("/parts", new PartController().handle); // postman ok 
+routes.get("/parts", new PartController().list); // postman ok 
+routes.get("/parts/:id", new PartController().get); // postman ok 
+routes.put("/parts/:id", new PartController().update); // postman ok 
+routes.delete("/parts/:id", new PartController().delete);  // postman ok 
+
+// Criação de servicos
+routes.post("/services", new ServiceController().handle); // postman ok 
+routes.get("/services", new ServiceController().list); // postman ok 
+routes.get("/services/:id", new ServiceController().get); // postman ok 
+routes.put("/services/:id", new ServiceController().update);  // postman ok 
+routes.delete("/services/:id", new ServiceController().delete); // postman ok 
+
+routes.use(AuthMiddleware)
 

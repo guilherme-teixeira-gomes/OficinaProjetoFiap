@@ -9,5 +9,5 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME,
   entities: ["dist/entities/*.js"],   // <-- JS no build
   migrations: ["dist/migrations/*.js"],
-  synchronize: false,                 // melhor false em produção
+  synchronize: true,                 // melhor false em produção
 });
