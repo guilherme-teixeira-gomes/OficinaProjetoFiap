@@ -1,0 +1,335 @@
+{
+  "dependenciesVulnerabilities": {
+    "auditReportVersion": 2,
+    "vulnerabilities": {},
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      },
+      "dependencies": {
+        "prod": 210,
+        "dev": 164,
+        "optional": 3,
+        "peer": 0,
+        "peerOptional": 0,
+        "total": 375
+      }
+    }
+  },
+  "codeVulnerabilities": [
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/controllers/ClientController.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/controllers/PartController.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/controllers/ServiceController.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/controllers/ServiceOrderController.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/controllers/VehiclesController.ts.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/data-source.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/entities/Client.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/entities/Part.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/entities/Service.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/entities/ServiceOrder.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/entities/User.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/entities/Vehicle.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/helpers/api-errors.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/index.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/middlewares/AuthMiddleware.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/repositories/ClientRepository.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/repositories/PartRepository.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/repositories/ServiceOrderRepository.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/repositories/ServiceRepository.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/repositories/UserRepository.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/repositories/VehicleRepository.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/routes/routes.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/services/ClientService.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/services/PartService.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/services/ServiceOrderService.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/services/ServiceService.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/services/VehiclesService.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    },
+    {
+      "filePath": "/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/status/orderStatus.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": []
+    }
+  ],
+  "generatedAt": "2026-03-09T00:47:53.380Z"
+}
