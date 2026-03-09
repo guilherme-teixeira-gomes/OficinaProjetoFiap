@@ -3,8 +3,7 @@ import jwt from "jsonwebtoken";
 import { UnauthorizedError } from "../helpers/api-errors";
 import { UserRepository } from "../repositories/UserRepository";
 
-
-
+const JWT_SECRET = "supersecret"; // mesmo segredo do UserService
 
 type JwtPayload = {
   id: number;
@@ -15,7 +14,8 @@ export async function AuthMiddleware(
   res: Response,
   next: NextFunction
 ) {
-  if (req.path.startsWith("/public")) {
+  // Rotas públicas: login e criação de usuário
+  if (req.path === "/user/login" || req.path === "/user" || req.path.startsWith("/public")) {
     return next();
   }
 
@@ -23,20 +23,27 @@ export async function AuthMiddleware(
     const { authorization } = req.headers;
 
     if (!authorization) {
-      throw new UnauthorizedError("Token not provided");
+      throw new UnauthorizedError("Token não fornecido");
     }
 
     const token = authorization.split(" ")[1];
-    const { id } = jwt.verify(token, process.env.JWT_PASS ?? "") as JwtPayload;
+    if (!token) {
+      throw new UnauthorizedError("Token inválido");
+    }
+
+    const { id } = jwt.verify(token, JWT_SECRET) as JwtPayload;
 
     const user = await UserRepository.findOne({
       where: { id },
-     
     });
 
     if (!user) {
-      throw new UnauthorizedError("User not found");
+      throw new UnauthorizedError("Usuário não encontrado");
     }
+
+    // Adiciona user ao request para uso em logout ou outras rotas
+    (req as any).user = { id: user.id, name: user.name, email: user.email, role: user.role };
+
     next();
   } catch (error: any) {
     if (error.name === "JsonWebTokenError" || error.statusCode === 401) {
