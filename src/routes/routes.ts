@@ -11,43 +11,54 @@ import { createVehicleValidation } from "../validations/vehicleValidations";
 
 
 
+
 export const routes = Router();
-routes.get('/static')
-routes.post("/user", new UserController().handle);  // postman ok 
-routes.post("/user/login", new UserController().login); //doc ok
-routes.get("/clients/document/:document", new ClientController().getDocument); // postman ok 
-routes.get("/service-order/:id", new ServiceOrderController().get); // postman ok 
 
-routes.use(AuthMiddleware)
-routes.post("/user/logout", new UserController().logout); //doc ok
+// Rotas públicas
+routes.get('/static');
+routes.post("/user", new UserController().handle);
+routes.post("/user/login", new UserController().login);
+routes.get("/clients/document/:document", new ClientController().getDocument);
+routes.get("/service-order/:id", new ServiceOrderController().get);
+routes.post("/service-order/:id/approve", new ServiceOrderController().approve);
 
-// Criação de clientes
-routes.post("/clients", createClientValidation, new ClientController().handle);  // postman ok 
-routes.get("/clients", new ClientController().list); // postman ok 
-routes.get("/clients/:id", new ClientController().get); // postman ok 
+// Middleware de autenticação
+routes.use(AuthMiddleware);
 
-// Criação de ordem de serviço
-routes.post("/service-order", new ServiceOrderController().handle); // postman ok 
-routes.get("/service-order", new ServiceOrderController().list); // postman ok 
+// Rotas de usuário
+routes.post("/user/logout", new UserController().logout);
 
-// Atualizar status da OS
-routes.patch("/service-order/:id/status", new ServiceOrderController().updateStatus); // postman ok 
+// Rotas de clientes
+routes.post("/clients", createClientValidation, new ClientController().handle);
+routes.get("/clients", new ClientController().list);
+routes.get("/clients/:id", new ClientController().get);
 
-// Criação de veiculos
-routes.post("/vehicles", createVehicleValidation, new VehicleController().handle); // postman ok 
-routes.get("/vehicles", new VehicleController().list);  // postman ok 
-routes.get("/vehicles/:id", new VehicleController().get);  // postman ok 
 
-// Criação de pecas
-routes.post("/parts", new PartController().handle); // postman ok 
-routes.get("/parts", new PartController().list); // postman ok 
-routes.get("/parts/:id", new PartController().get); // postman ok 
-routes.put("/parts/:id", new PartController().update); // postman ok 
-routes.delete("/parts/:id", new PartController().delete);  // postman ok 
+// Rotas de ordem de serviço
+routes.post("/service-order/", new ServiceOrderController().handle);
+routes.get("/service-order", new ServiceOrderController().list);
+routes.post("/service-order/:id/accept", new ServiceOrderController().acceptOrder);
+routes.post("/service-order/:id/diagnostic", new ServiceOrderController().addDiagnostic);
+routes.post("/service-order/:id/finish-diagnostic", new ServiceOrderController().finishDiagnostic);
+routes.post("/service-order/:id/finish", new ServiceOrderController().finish);
+routes.post("/service-order/:id/deliver", new ServiceOrderController().deliver);
+routes.get("/service-order/average/execution-time", new ServiceOrderController().averageExecutionTime);
 
-// Criação de servicos
-routes.post("/services", new ServiceController().handle); // postman ok 
-routes.get("/services", new ServiceController().list); // postman ok 
-routes.get("/services/:id", new ServiceController().get); // postman ok 
-routes.put("/services/:id", new ServiceController().update);  // postman ok 
-routes.delete("/services/:id", new ServiceController().delete); // postman ok 
+// Rotas de veículos
+routes.post("/vehicles", createVehicleValidation, new VehicleController().handle);
+routes.get("/vehicles", new VehicleController().list);
+routes.get("/vehicles/:id", new VehicleController().get);
+
+// Rotas de peças
+routes.post("/parts", new PartController().handle);
+routes.get("/parts", new PartController().list);
+routes.get("/parts/:id", new PartController().get);
+routes.put("/parts/:id", new PartController().update);
+routes.delete("/parts/:id", new PartController().delete);
+
+// Rotas de serviços
+routes.post("/services", new ServiceController().handle);
+routes.get("/services", new ServiceController().list);
+routes.get("/services/:id", new ServiceController().get);
+routes.put("/services/:id", new ServiceController().update);
+routes.delete("/services/:id", new ServiceController().delete);

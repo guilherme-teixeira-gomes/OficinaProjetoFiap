@@ -1,4 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { ServiceOrder } from "./ServiceOrder";
 
 
 @Entity("users")
@@ -19,4 +20,6 @@ export class User {
   @Column()
   role: string;
 
+  @OneToMany(() => ServiceOrder, (order) => order.mechanic)
+  serviceOrders: ServiceOrder[];
 }
