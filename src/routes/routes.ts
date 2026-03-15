@@ -8,18 +8,27 @@ import { ServiceController } from "../controllers/ServiceController";
 import { UserController } from "../controllers/UserController";
 import { createClientValidation } from "../validations/clientValidations";
 import { createVehicleValidation } from "../validations/vehicleValidations";
-
-
+import { ServiceExecutionController } from "../controllers/ServiceExecutionController";
 
 
 export const routes = Router();
 
 // Rotas públicas
 routes.get('/static');
+
+// Criacao de usuário
 routes.post("/user", new UserController().handle);
+
+// Login de usuário
 routes.post("/user/login", new UserController().login);
+
+// Busca de cliente por cnpj ou cpf
 routes.get("/clients/document/:document", new ClientController().getDocument);
+
+// Busca de service order por id
 routes.get("/service-order/:id", new ServiceOrderController().get);
+
+// Aprovacao de ordem de servico por parte do cliente
 routes.post("/service-order/:id/approve", new ServiceOrderController().approve);
 
 // Middleware de autenticação
@@ -33,7 +42,6 @@ routes.post("/clients", createClientValidation, new ClientController().handle);
 routes.get("/clients", new ClientController().list);
 routes.get("/clients/:id", new ClientController().get);
 
-
 // Rotas de ordem de serviço
 routes.post("/service-order/", new ServiceOrderController().handle);
 routes.get("/service-order", new ServiceOrderController().list);
@@ -42,7 +50,13 @@ routes.post("/service-order/:id/diagnostic", new ServiceOrderController().addDia
 routes.post("/service-order/:id/finish-diagnostic", new ServiceOrderController().finishDiagnostic);
 routes.post("/service-order/:id/finish", new ServiceOrderController().finish);
 routes.post("/service-order/:id/deliver", new ServiceOrderController().deliver);
-routes.get("/service-order/average/execution-time", new ServiceOrderController().averageExecutionTime);
+
+// Rotas de execucao de servicos
+routes.post("/service-executions/start", new ServiceExecutionController().startService);
+routes.post("/service-executions/finish",  new ServiceExecutionController().finishService);
+routes.get("/service-executions/average/:serviceId",  new ServiceExecutionController().getAverageByService);
+routes.get("/service-executions/averages",  new ServiceExecutionController().getAllAverages);
+routes.get("/service-executions/timeline/:serviceOrderId", new ServiceExecutionController().getTimeline);
 
 // Rotas de veículos
 routes.post("/vehicles", createVehicleValidation, new VehicleController().handle);

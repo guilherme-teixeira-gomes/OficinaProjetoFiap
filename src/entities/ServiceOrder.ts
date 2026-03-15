@@ -5,6 +5,7 @@ import { Service } from "./Service";
 import { Part } from "./Part";
 import { Diagnostic } from "./Diagnostic";
 import { User } from "./User";
+import { ServiceExecution } from "./ServiceExecution";
 
 @Entity("service_orders")
 export class ServiceOrder {
@@ -35,6 +36,9 @@ export class ServiceOrder {
   @OneToMany(() => Diagnostic, (diagnostic) => diagnostic.serviceOrder)
   diagnostics: Diagnostic[];
 
+  @OneToMany(() => ServiceExecution, execution => execution.serviceOrder)
+  executions: ServiceExecution[];
+
   @Column({ type: "boolean", default: false })
   approved: boolean;
 
@@ -48,7 +52,7 @@ export class ServiceOrder {
   status: string;
 
   @Column("text", { nullable: true })
-  observation: string; 
+  observation: string;
 
   @Column({ type: "timestamp", nullable: true })
   startedAt: Date;

@@ -1,6 +1,5 @@
 import { body } from "express-validator";
 
-// Validações para criação de cliente
 export const createClientValidation = [
   body("name")
     .notEmpty().withMessage("Nome é obrigatório")
@@ -13,12 +12,10 @@ export const createClientValidation = [
   body("document")
     .notEmpty().withMessage("CPF/CNPJ é obrigatório")
     .custom((value) => {
-      const cleanValue = value.replace(/\D/g, ""); // remove pontos e traços
+      const cleanValue = value.replace(/\D/g, ""); 
       if (cleanValue.length === 11) {
-        // CPF
         if (!validateCPF(cleanValue)) throw new Error("CPF inválido");
       } else if (cleanValue.length === 14) {
-        // CNPJ
         if (!validateCNPJ(cleanValue)) throw new Error("CNPJ inválido");
       } else {
         throw new Error("Documento deve ser CPF (11 dígitos) ou CNPJ (14 dígitos)");
@@ -27,7 +24,6 @@ export const createClientValidation = [
     }),
 ];
 
-// Funções de validação de CPF e CNPJ
 function validateCPF(cpf: string) {
   if (!cpf || cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
   let sum = 0;

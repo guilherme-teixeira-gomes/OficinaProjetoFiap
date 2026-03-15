@@ -2,10 +2,9 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { UserRepository } from "../repositories/UserRepository";
 
-const JWT_SECRET = "supersecret"; // segredo fixo para teste, pode trocar ou usar env
+const JWT_SECRET = "supersecret";
 
 export class UserService {
-  // Criar usuário administrativo
   static async createUser(data: { name: string; email: string; password: string; role: string }) {
     const { name, email, password, role } = data;
 
@@ -26,7 +25,6 @@ export class UserService {
     return await UserRepository.save(user);
   }
 
-  // Login administrativo
   static async login(email: string, password: string) {
     const user = await UserRepository.findOne({ where: { email } });
     if (!user) throw new Error("Credenciais inválidas");
@@ -40,9 +38,7 @@ export class UserService {
     return { user: userWithoutPassword, token };
   }
 
-  // Logout
   static async logout(userId: number) {
-    // Nenhuma atualização no banco necessária
     return { message: "Logout realizado com sucesso" };
   }
 }

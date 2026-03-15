@@ -1,4 +1,4 @@
-// controllers/PartController.ts
+
 import { Request, Response } from "express";
 import { PartService } from "../services/PartService";
 

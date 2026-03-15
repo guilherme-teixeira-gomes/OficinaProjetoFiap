@@ -13,7 +13,7 @@ export class Client {
   name: string;
 
   @Column({ type: "varchar", length: 18, unique: true })
-  document: string; // CPF ou CNPJ
+  document: string; 
 
   @Column({ type: "varchar", length: 150 })
   email: string;

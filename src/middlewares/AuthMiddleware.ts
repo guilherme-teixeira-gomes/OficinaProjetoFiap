@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { UnauthorizedError } from "../helpers/api-errors";
 import { UserRepository } from "../repositories/UserRepository";
 
-const JWT_SECRET = "supersecret"; // mesmo segredo do UserService
+const JWT_SECRET = "supersecret"; 
 
 type JwtPayload = {
   id: number;
@@ -14,7 +14,6 @@ export async function AuthMiddleware(
   res: Response,
   next: NextFunction
 ) {
-  // Rotas públicas: login e criação de usuário
   if (req.path === "/user/login" || req.path === "/user" || req.path.startsWith("/public")) {
     return next();
   }
@@ -41,7 +40,6 @@ export async function AuthMiddleware(
       throw new UnauthorizedError("Usuário não encontrado");
     }
 
-    // Adiciona user ao request para uso em logout ou outras rotas
     (req as any).user = { id: user.id, name: user.name, email: user.email, role: user.role };
 
     next();

@@ -25,7 +25,7 @@ export class UserController {
 
   async logout(req: Request, res: Response) {
     try {
-      const userId = (req as any).user?.id; // 'any' ignora o erro
+      const userId = (req as any).user?.id;
       if (!userId) return res.status(400).json({ message: "Usuário não autenticado" });
   
       const result = await UserService.logout(userId);

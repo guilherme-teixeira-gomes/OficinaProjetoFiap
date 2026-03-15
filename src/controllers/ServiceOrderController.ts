@@ -140,9 +140,4 @@ export class ServiceOrderController {
     }
   }
 
-  async averageExecutionTime(req: Request, res: Response) {
-    const service = new ServiceOrderService();
-    const avg = await service.averageExecutionTime();
-    res.json({ averageExecutionTimeMinutes: avg });
-  }
 }

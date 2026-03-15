@@ -1,4 +1,4 @@
-// services/PartService.ts
+
 import { PartRepository } from "../repositories/PartRepository";
 
 interface CreatePartDTO {
