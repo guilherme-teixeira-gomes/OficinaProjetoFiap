@@ -1,0 +1,7 @@
+organization=guilherme-teixeira-gomes
+projectKey=oficina-api
+serverUrl=https://sonarcloud.io
+serverVersion=8.0.0.83581
+dashboardUrl=https://sonarcloud.io/dashboard?id=oficina-api
+ceTaskId=AZ0RDDKqqVDrtfYuV9Sv
+ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AZ0RDDKqqVDrtfYuV9Sv

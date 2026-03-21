@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1774105562565" clover="3.2.0">
-  <project timestamp="1774105562565" name="All files">
+<coverage generated="1774107221775" clover="3.2.0">
+  <project timestamp="1774107221775" name="All files">
     <metrics statements="325" coveredstatements="303" conditionals="172" coveredconditionals="129" methods="68" coveredmethods="62" elements="565" coveredelements="494" complexity="0" loc="325" ncloc="325" packages="1" files="7" classes="7"/>
     <file name="ClientService.ts" path="/home/guigomes/Área de trabalho/Projetos/Oficina/oficina-api/src/services/ClientService.ts">
       <metrics statements="11" coveredstatements="10" conditionals="2" coveredconditionals="2" methods="4" coveredmethods="3"/>
