@@ -5,4 +5,7 @@ module.exports = {
     collectCoverageFrom: [
       "src/services/**/*.ts"
     ],
-  };
+    coverageDirectory: "coverage",
+    coverageReporters: ["lcov", "text", "html"],
+    testMatch: ["**/*.spec.ts", "**/*.test.ts"],
+};
