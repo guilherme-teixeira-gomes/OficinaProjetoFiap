@@ -2,66 +2,134 @@
 
 ## 🚗 Visão Geral
 
-Este projeto é o **MVP do back-end** de um Sistema Integrado de Atendimento e Execução de Serviços para uma oficina mecânica.  
+Este projeto é o MVP do back-end de um **Sistema Integrado de Atendimento e Execução de Serviços** para uma oficina mecânica.
 
-Objetivos:  
+O sistema tem como objetivo substituir processos manuais, garantindo:
 
-- Gestão de ordens de serviço (OS)  
-- Cadastro de clientes e veículos  
-- Controle de peças e insumos  
-- Orçamentos automáticos  
-- Acompanhamento do status das OS em tempo real  
+- ✅ Eficiência operacional
+- ✅ Rastreabilidade das ordens de serviço
+- ✅ Segurança e integridade dos dados
 
-O sistema substitui processos manuais e planilhas, garantindo **eficiência, rastreabilidade e segurança**.
+## ⚡ Funcionalidades
 
----
+### 📌 Ordem de Serviço (OS)
+- Cadastro de cliente (CPF/CNPJ)
+- Cadastro de veículo
+- Inclusão de serviços e peças
+- Geração automática de orçamento
+- Envio para aprovação
 
-## ⚡ Funcionalidades Principais
+### 🔄 Acompanhamento
+Status da OS:
+- Recebida
+- Em diagnóstico
+- Aguardando aprovação
+- Em execução
+- Finalizada
+- Entregue
 
-### Criação de Ordem de Serviço (OS)
-- Identificação do cliente por CPF/CNPJ  
-- Cadastro de veículo (placa, marca, modelo, ano)  
-- Inclusão de serviços solicitados (ex.: troca de óleo, alinhamento)  
-- Inclusão de peças e insumos necessários  
-- Orçamento gerado automaticamente  
-- Envio do orçamento ao cliente para aprovação  
+### 🧩 Gestão
+- CRUD de clientes
+- CRUD de veículos
+- CRUD de serviços
+- CRUD de peças e estoque
+- Listagem e detalhamento de OS
 
-### Acompanhamento da OS
-- Status da OS: Recebida, Em diagnóstico, Aguardando aprovação, Em execução, Finalizada, Entregue  
-- Alteração automática de status conforme ações  
-- Consulta via API para acompanhamento do progresso  
+### 🔐 Segurança
+- Autenticação com JWT
+- Validação de dados
+- Testes automatizados
 
-### Gestão Administrativa
-- CRUD de clientes  
-- CRUD de veículos  
-- CRUD de serviços  
-- CRUD de peças e insumos (controle de estoque)  
-- Listagem e detalhamento de ordens de serviço  
-- Monitoramento do tempo médio de execução dos serviços  
+## 🛠️ Tecnologias
 
-### Segurança e Qualidade
-- Autenticação JWT para APIs administrativas  
-- Validação de dados sensíveis (CPF/CNPJ, placa de veículo)  
-- Testes unitários e de integração nos principais fluxos  
+- Node.js 20
+- TypeScript
+- PostgreSQL
+- Docker + Docker Compose
 
----
+## 📦 Repositório
 
-## 🛠️ Requisitos Técnicos
-- Back-end monolítico com arquitetura em camadas (MVP)  
-- Banco de dados: **PostgreSQL**  
-- APIs RESTful documentadas (Swagger ou similar)  
-- Dockerfile e docker-compose para orquestração do ambiente  
-- Testes automatizados com cobertura mínima de 80% nos domínios críticos  
+git clone https://github.com/guilherme-teixeira-gomes/OficinaProjetoFiap.git
+cd OficinaProjetoFiap
+⚙️ Variáveis de Ambiente
+Crie um arquivo .env na raiz do projeto:
 
----
+env
+DB_HOST=localhost
+DB_PORT=5433
+DB_USER=postgres
+DB_PASS=postgres
+DB_NAME=oficina
 
-## 🚀 Como Rodar o Projeto
+JWT_PASS=supersecret
+🚀 Como Rodar o Projeto (Docker - recomendado)
+🔥 Subir o ambiente
 
-### Pré-requisitos
-- Docker e Docker Compose instalados  
-- Node.js (opcional para desenvolvimento local)  
+sudo docker-compose up --build
+🔍 O que acontece ao rodar
+API sobe na porta 3000
 
-### 1. Clonar o repositório
-```bash
-git clone <link-do-repositorio>
-cd oficina-api
+Banco PostgreSQL sobe na porta 5433 (host)
+
+Banco oficina é criado automaticamente
+
+API espera o banco iniciar (wait-port)
+
+🌐 Acessar a API
+
+http://localhost:3000
+🗄️ Acesso ao banco (externo)
+Campo	Valor
+Host	localhost
+Port	5433
+User	postgres
+Password	postgres
+Database	oficina
+🧪 Rodar testes
+
+sudo docker-compose exec api npm run test
+🔄 Parar o projeto
+
+sudo docker-compose down
+🧹 Resetar banco
+
+sudo docker-compose down -v
+
+
+Pré-requisitos:
+
+Node.js 20
+
+PostgreSQL rodando local
+
+Rodar:
+
+
+npm install
+npm run build
+npm run start
+🐳 Estrutura Docker
+
+Node 20
+
+Porta: 3000
+
+Aguarda banco subir antes de iniciar
+
+Banco
+
+PostgreSQL 15
+
+Porta interna: 5432
+
+Porta externa: 5433
+
+📁 Estrutura do Projeto
+text
+src/
+ ├── controllers/
+ ├── services/
+ ├── repositories/
+ ├── entities/
+ ├── routes/
+ └── utils/

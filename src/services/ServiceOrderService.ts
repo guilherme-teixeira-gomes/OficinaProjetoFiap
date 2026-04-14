@@ -8,6 +8,7 @@ import { DiagnosticRepository } from "../repositories/DiagnosticRepository";
 import { ServiceOrder } from "../entities/ServiceOrder";
 import { AddDiagnosticDTO, CreateServiceOrderDTO } from "../types/service-order.types";
 import { ServiceExecutionService } from "./ServiceExecutionService";
+import { StockService } from "./StockService";
 import { cpf, cnpj } from "cpf-cnpj-validator";
 
 function calculateDiagnosticTotal(diagnostic: any): number {
@@ -39,7 +40,6 @@ function validateDocument(document: string) {
   return cleaned;
 }
 
-
 function validatePlate(plate: string) {
   const normalized = plate.toUpperCase().replace(/[^A-Z0-9]/g, "");
 
@@ -53,6 +53,12 @@ function validatePlate(plate: string) {
 }
 
 export class ServiceOrderService {
+  private stockService: StockService;
+
+  constructor() {
+    this.stockService = new StockService();
+  }
+
   async create(data: CreateServiceOrderDTO) {
 
   if (data.client?.document) {
@@ -343,6 +349,7 @@ export class ServiceOrderService {
       message: "Orçamento gerado. Aguardando aprovação do cliente."
     };
   }
+
   async approve(id: number, approvedDiagnosticIds?: number[]) {
     const order = await ServiceOrderRepository.findOne({
       where: { id },
@@ -373,6 +380,7 @@ export class ServiceOrderService {
   
     const serviceIds = new Set<number>();
     const partIds = new Set<number>();
+    const partsWithQuantities = new Map<number, { part: any, quantity: number }>();
   
     for (const diagnostic of order.diagnostics) {
       if (!toApprove.includes(diagnostic.id)) continue;
@@ -383,6 +391,12 @@ export class ServiceOrderService {
   
       for (const part of diagnostic.recommendedParts || []) {
         partIds.add(part.id);
+        const current = partsWithQuantities.get(part.id);
+        if (current) {
+          current.quantity++;
+        } else {
+          partsWithQuantities.set(part.id, { part, quantity: 1 });
+        }
       }
     }
   
@@ -398,6 +412,18 @@ export class ServiceOrderService {
       approvedPartIds.length > 0
         ? await PartRepository.findByIds(approvedPartIds)
         : [];
+  
+    // 🔥 VALIDA ESTOQUE ANTES DE APROVAR
+    const stockValidation = await this.stockService.validateStockForServiceOrder({
+      parts: approvedParts
+    } as ServiceOrder);
+    
+    if (!stockValidation.valid) {
+      const errors = stockValidation.errors
+        .map(e => `${e.partName}: necessário ${e.required}, disponível ${e.available}`)
+        .join("; ");
+      throw new Error(`Estoque insuficiente para aprovação: ${errors}`);
+    }
   
     const totalServices = approvedServices.reduce(
       (sum, s) => sum + Number(s.price),
@@ -419,6 +445,32 @@ export class ServiceOrderService {
     order.budget = totalBudget;
   
     await ServiceOrderRepository.save(order);
+  
+    // 🔥 BAIXA NO ESTOQUE DAS PEÇAS APROVADAS
+    const stockMovements = [];
+    for (const part of approvedParts) {
+      const quantity = partsWithQuantities.get(part.id)?.quantity || 1;
+      try {
+        const movement = await this.stockService.reserveStock(
+          part.id,
+          quantity,
+          order.id,
+          `Baixa para OS #${order.id} - ${part.name} (${quantity} unidade(s))`
+        );
+        stockMovements.push(movement);
+      } catch (error: any) {
+        // Se falhar, estorna as que já foram baixadas
+        for (const movement of stockMovements) {
+          await this.stockService.restoreStock(
+            movement.partId,
+            Math.abs(movement.quantity),
+            order.id,
+            `Estorno por falha na aprovação da OS #${order.id}`
+          );
+        }
+        throw new Error(`Falha ao dar baixa no estoque: ${error.message}`);
+      }
+    }
   
     const executionService = new ServiceExecutionService();
     await executionService.createExecutionsFromApprovedOrder(order.id);
@@ -443,6 +495,7 @@ export class ServiceOrderService {
         })) || []
     };
   }
+
   async list() {
     const orders = await ServiceOrderRepository.find({ 
       relations: [
@@ -539,6 +592,4 @@ export class ServiceOrderService {
     order.status = "ENTREGUE";
     return ServiceOrderRepository.save(order);
   }
-
- 
 }

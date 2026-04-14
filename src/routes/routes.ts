@@ -9,6 +9,7 @@ import { UserController } from "../controllers/UserController";
 import { createClientValidation } from "../validations/clientValidations";
 import { createVehicleValidation } from "../validations/vehicleValidations";
 import { ServiceExecutionController } from "../controllers/ServiceExecutionController";
+import { StockController } from "../controllers/StockController";
 
 
 export const routes = Router();
@@ -41,6 +42,14 @@ routes.post("/user/logout", new UserController().logout);
 routes.post("/clients", createClientValidation, new ClientController().handle);
 routes.get("/clients", new ClientController().list);
 routes.get("/clients/:id", new ClientController().get);
+
+// Rotas de estoque
+routes.get("/stock/low", new StockController().getLowStock);
+routes.get("/stock/critical", new StockController().getCriticalStock); 
+routes.get("/stock/movements", new StockController().getMovements);  
+routes.get("/stock/summary",  new StockController().getStockSummary); 
+routes.post("/stock/add",  new StockController().addStock); 
+routes.get("/stock/check/:partId/:quantity", new StockController().checkAvailability);
 
 // Rotas de ordem de serviço
 routes.post("/service-order/", new ServiceOrderController().handle);
