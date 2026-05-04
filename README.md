@@ -77,7 +77,7 @@ JWT_PASS=supersecret
 ### 🔥 Subir o ambiente
 
 ```bash
-sudo docker-compose up --build
+sudo docker compose up --build
 ```
 
 ### 🔍 O que acontece ao rodar
@@ -104,19 +104,19 @@ http://localhost:3000
 ### 🧪 Rodar testes
 
 ```bash
-sudo docker-compose exec api npm run test
+sudo docker compose exec api npm run test
 ```
 
 ### 🔄 Parar o projeto
 
 ```bash
-sudo docker-compose down
+sudo docker compose down
 ```
 
 ### 🧹 Resetar banco
 
 ```bash
-sudo docker-compose down -v
+sudo docker compose down -v
 ```
 
 ## Pré-requisitos
