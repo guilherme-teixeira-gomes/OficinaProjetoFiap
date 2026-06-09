@@ -10,6 +10,26 @@ O sistema tem como objetivo substituir processos manuais, garantindo:
 - ✅ Rastreabilidade das ordens de serviço
 - ✅ Segurança e integridade dos dados
 
+## 📋 Requisitos Atendidos - Fase 2
+
+### ✅ Evolução da Aplicação
+
+| Requisito | Status | Implementação |
+|-----------|--------|----------------|
+| Clean Code | ✅ | Código refatorado com nomes claros e coesão |
+| Clean Architecture/Hexagonal | ✅ | Camadas separadas (use-cases, domain, infrastructure) |
+| Testes automatizados | ✅ | Unitários para todos os use-cases críticos |
+
+### ✅ Novas APIs
+
+| Endpoint | Método | Descrição | Status |
+|----------|--------|-----------|--------|
+| `/service-order` | POST | Abertura de OS com serviços e peças | ✅ |
+| `/service-order/:id/status` | GET | Consulta de status da OS | ✅ |
+| `/service-order/:id/approve` | POST | Aprovação de orçamento | ✅ |
+| `/service-order/:id/reject` | POST | Recusa de orçamento | ✅ |
+| `/service-order` | GET | Listagem com ordenação e exclusão | ✅ |
+
 ## ⚡ Funcionalidades
 
 ### 📌 Ordem de Serviço (OS)
@@ -51,118 +71,47 @@ Status da OS:
 - TypeScript
 - PostgreSQL
 - Docker + Docker Compose
+- Kubernetes (Kind/Minikube)
+- GitHub Actions (CI/CD)
+- Terraform (IaC)
 
-## 📦 Repositório
+## 🏗️ Arquitetura da Solução
 
-```bash
-git clone https://github.com/guilherme-teixeira-gomes/OficinaProjetoFiap.git
-cd OficinaProjetoFiap
-```
+```mermaid
+graph TB
+    subgraph "Cliente"
+        A[Cliente/Postman] --> B[API Gateway / Load Balancer]
+    end
 
-## ⚙️ Variáveis de Ambiente
+    subgraph "Kubernetes Cluster"
+        B --> C[Service API - NodePort]
+        C --> D1[Pod: API - Réplica 1]
+        C --> D2[Pod: API - Réplica 2]
+        C --> D3[Pod: API - Réplica N]
+        
+        D1 --> E[Service PostgreSQL]
+        D2 --> E
+        D3 --> E
+        
+        E --> F[Pod: PostgreSQL]
+        F --> G[Persistent Volume]
+        
+        H[Horizontal Pod Autoscaler] -.-> D1
+        H -.-> D2
+        H -.-> D3
+    end
 
-Crie e configure um arquivo `.env` na raiz do projeto:
+    subgraph "Recursos Externos"
+        D1 -.-> I[SMTP - Ethereal]
+        D2 -.-> I
+        D3 -.-> I
+    end
 
-```env
-DB_HOST=localhost
-DB_PORT=5433
-DB_USER=postgres
-DB_PASS=postgres
-DB_NAME=oficina
-JWT_PASS=supersecret
-```
-
-## 🚀 Como Rodar o Projeto (Docker - recomendado)
-
-### 🔥 Subir o ambiente
-
-```bash
-sudo docker-compose up --build
-```
-
-### 🔍 O que acontece ao rodar
-
-- API sobe na porta 3000
-- Banco PostgreSQL sobe na porta 5433 (host)
-- Banco `oficina` é criado automaticamente
-- API espera o banco iniciar (wait-port)
-
-### 🌐 Acessar a API
-
-http://localhost:3000
-
-### 🗄️ Acesso ao banco (externo)
-
-| Campo    | Valor     |
-| -------- | --------- |
-| Host     | localhost |
-| Port     | 5433      |
-| User     | postgres  |
-| Password | postgres  |
-| Database | oficina   |
-
-### 🧪 Rodar testes
-
-```bash
-sudo docker-compose exec api npm run test
-```
-
-### 🔄 Parar o projeto
-
-```bash
-sudo docker-compose down
-```
-
-### 🧹 Resetar banco
-
-```bash
-sudo docker-compose down -v
-```
-
-## Pré-requisitos
-
-- Node.js 20
-- PostgreSQL rodando local
-
-### Rodar sem Docker:
-
-```bash
-npm install
-npm run build
-npm run start
-```
-
-## 🐳 Estrutura Docker
-
-- **Node 20**
-- Porta: 3000
-- Aguarda banco subir antes de iniciar
-
-- **Banco**
-- PostgreSQL 15
-- Porta interna: 5432
-- Porta externa: 5433
-
-## 📁 Estrutura do Projeto
-
-```
-src/
-├── controllers/
-├── services/
-├── repositories/
-├── entities/
-├── routes/
-└── utils/
-```
-
-src/
-├── controllers/
-├── services/
-├── repositories/
-├── entities/
-├── routes/
-└── utils/
-
-```
-
-```
+    subgraph "CI/CD Pipeline"
+        J[GitHub] --> K[GitHub Actions]
+        K --> L[Docker Build]
+        L --> M[Docker Registry]
+        M --> D1
+        M --> D2
+        M --> D3
+    end

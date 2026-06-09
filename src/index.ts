@@ -2,10 +2,11 @@ import "reflect-metadata";
 import express from "express";
 import cors from "cors";
 import "express-async-errors";
-import { AppDataSource } from "./data-source";
-import { routes } from "./routes/routes";
+
 import swaggerUi from 'swagger-ui-express';
-import swaggerDocument from './swagger/swagger.json'; 
+import swaggerDocument from '../src/infrastructure/web/swagger/swagger.json'; 
+import { AppDataSource } from "./infrastructure/database/data-source";
+import { routes } from "./infrastructure/web/routes/routes";
 
 const app = express();
 const PORT = 3000;

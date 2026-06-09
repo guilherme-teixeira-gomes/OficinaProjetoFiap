@@ -11,7 +11,7 @@ COPY package*.json ./
 RUN npm install
 
 # Instala wait-port globalmente para esperar o Postgres subir
-RUN npm install --save-dev wait-port
+RUN npm install -g wait-port
 
 # Copia todo o projeto
 COPY . .
@@ -23,4 +23,4 @@ RUN npm run build
 EXPOSE 3000
 
 # Comando para rodar a API, esperando o banco subir
-CMD ["sh", "-c", "npx wait-port $DB_HOST:$DB_PORT && npm start"]
+CMD ["sh", "-c", "wait-port $DB_HOST:$DB_PORT && npm start"]

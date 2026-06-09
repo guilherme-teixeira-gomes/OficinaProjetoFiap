@@ -1,0 +1,1370 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Oficina Mecânica",
+    "version": "1.0.0",
+    "description": "API para gerenciamento de oficina mecânica com controle de estoque"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Servidor de Desenvolvimento"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Client": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "João Silva" },
+          "document": { "type": "string", "example": "12345678901" },
+          "email": { "type": "string", "example": "joao@email.com" },
+          "phone": { "type": "string", "example": "11999999999" }
+        }
+      },
+      "CreateClientDTO": {
+        "type": "object",
+        "required": ["name", "document", "email", "phone"],
+        "properties": {
+          "name": { "type": "string", "example": "João Silva" },
+          "document": { "type": "string", "example": "12345678901" },
+          "email": { "type": "string", "example": "joao@email.com" },
+          "phone": { "type": "string", "example": "11999999999" }
+        }
+      },
+      "Vehicle": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "plate": { "type": "string", "example": "ABC1234" },
+          "brand": { "type": "string", "example": "Honda" },
+          "model": { "type": "string", "example": "Civic" },
+          "year": { "type": "integer", "example": 2022 }
+        }
+      },
+      "Part": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "Pastilha de Freio" },
+          "description": { "type": "string", "example": "Pastilha de freio dianteira" },
+          "price": { "type": "number", "example": 89.90 },
+          "stock": { "type": "integer", "example": 10 },
+          "minimumStock": { "type": "integer", "example": 3 },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CreatePartDTO": {
+        "type": "object",
+        "required": ["name", "price"],
+        "properties": {
+          "name": { "type": "string", "example": "Pastilha de Freio" },
+          "description": { "type": "string", "example": "Pastilha de freio dianteira" },
+          "price": { "type": "number", "example": 89.90 },
+          "stock": { "type": "integer", "example": 10 },
+          "minimumStock": { "type": "integer", "example": 3 }
+        }
+      },
+      "StockMovement": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "partId": { "type": "integer", "example": 1 },
+          "partName": { "type": "string", "example": "Pastilha de Freio" },
+          "quantity": { "type": "integer", "example": -1 },
+          "type": { "type": "string", "enum": ["IN", "OUT"], "example": "OUT" },
+          "unitPrice": { "type": "number", "example": 89.90 },
+          "totalValue": { "type": "number", "example": 89.90 },
+          "serviceOrderId": { "type": "integer", "example": 1, "nullable": true },
+          "description": { "type": "string", "example": "Baixa para OS #1" },
+          "status": { "type": "string", "example": "CONFIRMADO" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Service": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "Troca de Pastilha de Freio" },
+          "description": { "type": "string", "example": "Substituição das pastilhas de freio dianteiras" },
+          "price": { "type": "number", "example": 120.00 },
+          "active": { "type": "boolean", "example": true },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "João Mecânico" },
+          "email": { "type": "string", "example": "mecanico@email.com" },
+          "role": { "type": "string", "example": "mecanico" }
+        }
+      },
+      "LoginDTO": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "example": "mecanico@email.com" },
+          "password": { "type": "string", "example": "123456" }
+        }
+      },
+      "ServiceOrder": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "status": { 
+            "type": "string", 
+            "enum": ["RECEBIDA", "EM_DIAGNOSTICO", "AGUARDANDO_APROVACAO", "EM_EXECUCAO", "FINALIZADA", "ENTREGUE", "CANCELADA"],
+            "example": "RECEBIDA"
+          },
+          "budget": { "type": "number", "example": 209.90 },
+          "observation": { "type": "string", "example": "Cliente relatou barulho nos freios" }
+        }
+      },
+      "CreateServiceOrderDTO": {
+        "type": "object",
+        "required": ["client", "vehicle"],
+        "properties": {
+          "client": {
+            "type": "object",
+            "properties": {
+              "document": { "type": "string", "example": "12345678901" },
+              "name": { "type": "string", "example": "João Silva" },
+              "email": { "type": "string", "example": "joao@email.com" },
+              "phone": { "type": "string", "example": "11999999999" }
+            }
+          },
+          "vehicle": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "integer", "example": 1 },
+              "plate": { "type": "string", "example": "ABC1234" },
+              "brand": { "type": "string", "example": "Honda" },
+              "model": { "type": "string", "example": "Civic" },
+              "year": { "type": "integer", "example": 2022 }
+            }
+          },
+          "observation": { "type": "string", "example": "Cliente relatou barulho nos freios" }
+        }
+      },
+      "Diagnostic": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "title": { "type": "string", "example": "Diagnóstico Freios" },
+          "description": { "type": "string", "example": "Pastilhas de freio desgastadas" },
+          "priority": { "type": "string", "enum": ["baixa", "media", "alta"], "example": "alta" }
+        }
+      },
+      "AddDiagnosticDTO": {
+        "type": "object",
+        "required": ["title", "description"],
+        "properties": {
+          "title": { "type": "string", "example": "Diagnóstico Freios" },
+          "description": { "type": "string", "example": "Pastilhas de freio desgastadas" },
+          "includeInBudget": { "type": "boolean", "example": true },
+          "priority": { "type": "string", "enum": ["baixa", "media", "alta"], "example": "alta" },
+          "mechanicNote": { "type": "string", "example": "Trocar pastilhas" },
+          "serviceIds": { "type": "array", "items": { "type": "integer" }, "example": [1] },
+          "partIds": { "type": "array", "items": { "type": "integer" }, "example": [1] }
+        }
+      },
+      "ServiceExecution": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "serviceOrderId": { "type": "integer", "example": 1 },
+          "serviceId": { "type": "integer", "example": 1 },
+          "startedAt": { "type": "string", "format": "date-time" },
+          "finishedAt": { "type": "string", "format": "date-time" },
+          "durationMinutes": { "type": "integer", "example": 60 },
+          "status": { "type": "string", "enum": ["PENDENTE", "EM_ANDAMENTO", "CONCLUIDO"] }
+        }
+      },
+      "StatusResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "status": { 
+            "type": "string", 
+            "enum": ["RECEBIDA", "EM_DIAGNOSTICO", "AGUARDANDO_APROVACAO", "EM_EXECUCAO", "FINALIZADA", "ENTREGUE", "CANCELADA"],
+            "example": "RECEBIDA"
+          },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string", "example": "Mensagem de erro" }
+        }
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "message": { "type": "string", "example": "Operação realizada com sucesso" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/user": {
+      "post": {
+        "summary": "Criar um novo usuário",
+        "tags": ["Usuários"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "password", "role"],
+                "properties": {
+                  "name": { "type": "string", "example": "João Mecânico" },
+                  "email": { "type": "string", "example": "mecanico@email.com" },
+                  "password": { "type": "string", "example": "123456" },
+                  "role": { "type": "string", "enum": ["admin", "mecanico", "atendente"], "example": "mecanico" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuário criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User" }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro na requisição",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/login": {
+      "post": {
+        "summary": "Fazer login no sistema",
+        "tags": ["Usuários"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginDTO" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login realizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": { "$ref": "#/components/schemas/User" },
+                        "token": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciais inválidas"
+          }
+        }
+      }
+    },
+    "/user/logout": {
+      "post": {
+        "summary": "Fazer logout do sistema",
+        "tags": ["Usuários"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Logout realizado com sucesso"
+          }
+        }
+      }
+    },
+    "/clients": {
+      "post": {
+        "summary": "Criar um novo cliente",
+        "tags": ["Clientes"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateClientDTO" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cliente criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Client" }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro na criação"
+          }
+        }
+      },
+      "get": {
+        "summary": "Listar todos os clientes",
+        "tags": ["Clientes"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de clientes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Client" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clients/{id}": {
+      "get": {
+        "summary": "Buscar cliente por ID",
+        "tags": ["Clientes"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID do cliente"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cliente encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Client" }
+              }
+            }
+          },
+          "404": {
+            "description": "Cliente não encontrado"
+          }
+        }
+      }
+    },
+    "/clients/document/{document}": {
+      "get": {
+        "summary": "Buscar cliente por CPF/CNPJ",
+        "tags": ["Clientes"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "CPF ou CNPJ do cliente"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cliente encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Client" }
+              }
+            }
+          },
+          "404": {
+            "description": "Cliente não encontrado"
+          }
+        }
+      }
+    },
+    "/vehicles": {
+      "post": {
+        "summary": "Criar um novo veículo",
+        "tags": ["Veículos"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["plate", "brand", "model", "year", "clientDocument"],
+                "properties": {
+                  "plate": { "type": "string", "example": "ABC1234" },
+                  "brand": { "type": "string", "example": "Honda" },
+                  "model": { "type": "string", "example": "Civic" },
+                  "year": { "type": "integer", "example": 2022 },
+                  "clientDocument": { "type": "string", "example": "12345678901" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Veículo criado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Vehicle" }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Listar todos os veículos",
+        "tags": ["Veículos"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de veículos"
+          }
+        }
+      }
+    },
+    "/vehicles/{id}": {
+      "get": {
+        "summary": "Buscar veículo por ID",
+        "tags": ["Veículos"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Veículo encontrado"
+          }
+        }
+      }
+    },
+    "/parts": {
+      "post": {
+        "summary": "Criar uma nova peça",
+        "tags": ["Peças"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreatePartDTO" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Peça criada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Part" }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Listar todas as peças",
+        "tags": ["Peças"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de peças",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Part" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/parts/{id}": {
+      "get": {
+        "summary": "Buscar peça por ID",
+        "tags": ["Peças"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Peça encontrada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Part" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Atualizar uma peça",
+        "tags": ["Peças"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreatePartDTO" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Peça atualizada"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remover uma peça",
+        "tags": ["Peças"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Peça removida"
+          }
+        }
+      }
+    },
+    "/services": {
+      "post": {
+        "summary": "Criar um novo serviço",
+        "tags": ["Serviços"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "price"],
+                "properties": {
+                  "name": { "type": "string", "example": "Troca de Pastilha de Freio" },
+                  "description": { "type": "string", "example": "Substituição das pastilhas de freio" },
+                  "price": { "type": "number", "example": 120.00 },
+                  "active": { "type": "boolean", "example": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Serviço criado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Service" }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Listar todos os serviços",
+        "tags": ["Serviços"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de serviços",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Service" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/services/{id}": {
+      "get": {
+        "summary": "Buscar serviço por ID",
+        "tags": ["Serviços"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Serviço encontrado"
+          }
+        }
+      },
+      "put": {
+        "summary": "Atualizar um serviço",
+        "tags": ["Serviços"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "price": { "type": "number" },
+                  "active": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Serviço atualizado"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remover um serviço",
+        "tags": ["Serviços"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Serviço removido"
+          }
+        }
+      }
+    },
+    "/service-order": {
+      "post": {
+        "summary": "Criar uma nova ordem de serviço",
+        "tags": ["Ordens de Serviço"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateServiceOrderDTO" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OS criada com sucesso"
+          }
+        }
+      },
+      "get": {
+        "summary": "Listar todas as ordens de serviço",
+        "tags": ["Ordens de Serviço"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de OS"
+          }
+        }
+      }
+    },
+    "/service-order/{id}": {
+      "get": {
+        "summary": "Buscar OS por ID",
+        "tags": ["Ordens de Serviço"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OS encontrada"
+          }
+        }
+      }
+    },
+    "/service-order/{id}/status": {
+      "get": {
+        "summary": "Consultar status da OS",
+        "tags": ["Ordens de Serviço"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID da ordem de serviço"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status da OS",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/StatusResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "OS não encontrada"
+          }
+        }
+      }
+    },
+    "/service-order/{id}/accept": {
+      "post": {
+        "summary": "Aceitar OS (mecânico)",
+        "tags": ["Ordens de Serviço"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "mechanicId": { "type": "integer", "example": 1 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OS aceita"
+          }
+        }
+      }
+    },
+    "/service-order/{id}/reject": {
+      "post": {
+        "summary": "Recusar orçamento",
+        "tags": ["Ordens de Serviço"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID da ordem de serviço"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Orçamento recusado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "message": { "type": "string", "example": "Orçamento recusado" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "integer", "example": 1 },
+                        "status": { "type": "string", "example": "CANCELADA" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro na requisição"
+          },
+          "404": {
+            "description": "OS não encontrada"
+          }
+        }
+      }
+    },
+    "/service-order/{id}/diagnostic": {
+      "post": {
+        "summary": "Adicionar diagnóstico",
+        "tags": ["Diagnósticos"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AddDiagnosticDTO" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Diagnóstico adicionado"
+          }
+        }
+      }
+    },
+    "/service-order/{id}/finish-diagnostic": {
+      "post": {
+        "summary": "Finalizar diagnóstico",
+        "tags": ["Diagnósticos"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Diagnóstico finalizado"
+          }
+        }
+      }
+    },
+    "/service-order/{id}/approve": {
+      "post": {
+        "summary": "Aprovar orçamento (dá baixa no estoque)",
+        "tags": ["Ordens de Serviço"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "approvedDiagnosticIds": {
+                    "type": "array",
+                    "items": { "type": "integer" },
+                    "example": [1]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Orçamento aprovado e estoque baixado"
+          },
+          "400": {
+            "description": "Estoque insuficiente"
+          }
+        }
+      }
+    },
+    "/service-order/{id}/finish": {
+      "post": {
+        "summary": "Finalizar OS",
+        "tags": ["Ordens de Serviço"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OS finalizada"
+          }
+        }
+      }
+    },
+    "/service-order/{id}/deliver": {
+      "post": {
+        "summary": "Entregar veículo",
+        "tags": ["Ordens de Serviço"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Veículo entregue"
+          }
+        }
+      }
+    },
+    "/service-executions/start": {
+      "post": {
+        "summary": "Iniciar serviço",
+        "tags": ["Execução de Serviços"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["serviceOrderId", "serviceId"],
+                "properties": {
+                  "serviceOrderId": { "type": "integer", "example": 1 },
+                  "serviceId": { "type": "integer", "example": 1 },
+                  "mechanicNote": { "type": "string", "example": "Iniciando serviço" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Serviço iniciado"
+          }
+        }
+      }
+    },
+    "/service-executions/finish": {
+      "post": {
+        "summary": "Finalizar serviço",
+        "tags": ["Execução de Serviços"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["serviceOrderId", "serviceId"],
+                "properties": {
+                  "serviceOrderId": { "type": "integer", "example": 1 },
+                  "serviceId": { "type": "integer", "example": 1 },
+                  "mechanicNote": { "type": "string", "example": "Serviço concluído" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Serviço finalizado"
+          }
+        }
+      }
+    },
+    "/service-executions/average/{serviceId}": {
+      "get": {
+        "summary": "Tempo médio de um serviço",
+        "tags": ["Estatísticas"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceId",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Média calculada"
+          }
+        }
+      }
+    },
+    "/service-executions/averages": {
+      "get": {
+        "summary": "Tempo médio de todos os serviços",
+        "tags": ["Estatísticas"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Médias calculadas"
+          }
+        }
+      }
+    },
+    "/service-executions/timeline/{serviceOrderId}": {
+      "get": {
+        "summary": "Timeline da OS",
+        "tags": ["Execução de Serviços"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "serviceOrderId",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Timeline da OS"
+          }
+        }
+      }
+    },
+    "/stock/low": {
+      "get": {
+        "summary": "Listar peças com estoque baixo (menos de 5 unidades)",
+        "tags": ["Estoque"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de peças com estoque baixo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Part" }
+                    },
+                    "count": { "type": "integer", "example": 1 },
+                    "message": { "type": "string", "example": "1 peça(s) com estoque baixo" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stock/critical": {
+      "get": {
+        "summary": "Listar peças com estoque crítico (abaixo do mínimo)",
+        "tags": ["Estoque"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de peças com estoque crítico",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Part" }
+                    },
+                    "count": { "type": "integer", "example": 1 },
+                    "message": { "type": "string", "example": "1 peça(s) com estoque crítico" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stock/movements": {
+      "get": {
+        "summary": "Listar movimentações de estoque",
+        "tags": ["Estoque"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "partId",
+            "schema": { "type": "integer" },
+            "description": "Filtrar por ID da peça"
+          },
+          {
+            "in": "query",
+            "name": "serviceOrderId",
+            "schema": { "type": "integer" },
+            "description": "Filtrar por ID da OS"
+          },
+          {
+            "in": "query",
+            "name": "startDate",
+            "schema": { "type": "string", "format": "date" },
+            "description": "Data inicial (YYYY-MM-DD)"
+          },
+          {
+            "in": "query",
+            "name": "endDate",
+            "schema": { "type": "string", "format": "date" },
+            "description": "Data final (YYYY-MM-DD)"
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "schema": { "type": "string", "enum": ["IN", "OUT"] },
+            "description": "Tipo de movimentação (IN=entrada, OUT=saída)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de movimentações",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/StockMovement" }
+                    },
+                    "count": { "type": "integer", "example": 5 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stock/summary": {
+      "get": {
+        "summary": "Resumo gerencial do estoque",
+        "tags": ["Estoque"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Resumo do estoque",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "totalParts": { "type": "integer", "example": 10 },
+                        "totalValue": { "type": "number", "example": 1500.50 },
+                        "lowStockCount": { "type": "integer", "example": 2 },
+                        "criticalStockCount": { "type": "integer", "example": 1 },
+                        "partsByStock": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": { "type": "string" },
+                              "stock": { "type": "integer" },
+                              "minimumStock": { "type": "integer" },
+                              "status": { "type": "string", "enum": ["CRÍTICO", "BAIXO", "NORMAL"] }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stock/add": {
+      "post": {
+        "summary": "Adicionar peças ao estoque (entrada)",
+        "tags": ["Estoque"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["partId", "quantity"],
+                "properties": {
+                  "partId": { "type": "integer", "example": 1 },
+                  "quantity": { "type": "integer", "example": 10 },
+                  "description": { "type": "string", "example": "Reposição de estoque - Fornecedor XYZ" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Estoque atualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": { "$ref": "#/components/schemas/StockMovement" },
+                    "message": { "type": "string", "example": "10 unidade(s) adicionadas ao estoque com sucesso" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro na requisição",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stock/check/{partId}/{quantity}": {
+      "get": {
+        "summary": "Verificar disponibilidade de estoque",
+        "tags": ["Estoque"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "partId",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID da peça"
+          },
+          {
+            "in": "path",
+            "name": "quantity",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Quantidade desejada"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Disponibilidade verificada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "available": { "type": "boolean", "example": true },
+                        "currentStock": { "type": "integer", "example": 10 },
+                        "requiredQuantity": { "type": "integer", "example": 5 },
+                        "deficit": { "type": "integer", "example": 0 }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro na requisição",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

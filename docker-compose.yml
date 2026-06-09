@@ -1,5 +1,4 @@
 services:
-
   api:
     build: .
     ports:
@@ -7,13 +6,19 @@ services:
     depends_on:
       - db
     environment:
+      NODE_ENV: development
       DB_HOST: db
-      DB_PORT: 5432   # dentro do container, use a porta interna do Postgres
+      DB_PORT: 5432
       DB_USER: postgres
       DB_PASS: postgres
       DB_NAME: oficina
-    command: >
-      sh -c "npx wait-port db:5432 && npm run start"
+      JWT_PASS: supersecret
+      SMTP_HOST: ${SMTP_HOST:-smtp.ethereal.email}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-oran94@ethereal.email}
+      SMTP_PASS: ${SMTP_PASS:-YEdm6na527FACPxEyK}
+      APP_URL: http://localhost:3000
+    restart: unless-stopped
 
   db:
     image: postgres:15
@@ -23,9 +28,14 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: oficina
     ports:
-      - "5433:5432"  # host:container
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
