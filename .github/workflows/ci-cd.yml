@@ -10,7 +10,6 @@ env:
   IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/oficina-api
 
 jobs:
-  # ─── 1. Testes e build ───────────────────────────────────────────────────────
   test:
     name: Testes e Build
     runs-on: ubuntu-latest
@@ -42,7 +41,7 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-     - name: Executar testes unitários
+      - name: Executar testes unitários
         env:
           DB_HOST: localhost
           DB_PORT: 5432
@@ -55,7 +54,6 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
-  # ─── 2. Build e push da imagem Docker ────────────────────────────────────────
   docker-build:
     name: Build e Push Docker
     runs-on: ubuntu-latest
@@ -81,7 +79,6 @@ jobs:
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-  # ─── 3. Deploy no Kubernetes ─────────────────────────────────────────────────
   deploy:
     name: Deploy Kubernetes
     runs-on: ubuntu-latest
