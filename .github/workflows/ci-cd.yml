@@ -137,7 +137,7 @@ jobs:
 
       - name: Aguardar deploy da API
         run: |
-          kubectl rollout status deployment/oficina-api --timeout=180s
+          kubectl rollout status deployment/oficina-api --timeout=300s
 
       - name: Verificar pods em execução
         run: |
