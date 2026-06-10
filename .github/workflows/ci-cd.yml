@@ -42,7 +42,7 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Executar testes
+     - name: Executar testes unitários
         env:
           DB_HOST: localhost
           DB_PORT: 5432
@@ -50,7 +50,7 @@ jobs:
           DB_PASS: postgres
           DB_NAME: oficina_test
           JWT_PASS: test-secret
-          run: npx jest --testPathPattern=spec
+        run: npx jest --testPathPattern=spec
 
       - name: Build TypeScript
         run: npm run build
