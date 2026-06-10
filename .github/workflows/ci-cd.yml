@@ -10,6 +10,7 @@ env:
   IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/oficina-api
 
 jobs:
+  # ─── 1. Testes e build ───────────────────────────────────────────────────────
   test:
     name: Testes e Build
     runs-on: ubuntu-latest
@@ -54,6 +55,7 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
+  # ─── 2. Build e push da imagem Docker ────────────────────────────────────────
   docker-build:
     name: Build e Push Docker
     runs-on: ubuntu-latest
@@ -79,57 +81,66 @@ jobs:
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
 
+  # ─── 3. Deploy no Kubernetes (Kind) ──────────────────────────────────────────
   deploy:
     name: Deploy Kubernetes
     runs-on: ubuntu-latest
     needs: docker-build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
 
-      - name: Configurar kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: latest
-
-      - name: Configurar kubeconfig
+      - name: Instalar Kind
         run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBECONFIG }}" | base64 -d > $HOME/.kube/config
-          chmod 600 $HOME/.kube/config
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-amd64
+          chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/kind
 
-      - name: Criar/atualizar Secret do Kubernetes
+      - name: Criar cluster Kind
+        run: |
+          kind create cluster --name oficina --wait 60s
+          kubectl cluster-info --context kind-oficina
+
+      - name: Carregar imagem no Kind
+        run: |
+          docker pull ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          kind load docker-image ${{ env.IMAGE_NAME }}:${{ github.sha }} --name oficina
+
+      - name: Criar secrets do Kubernetes
         run: |
           kubectl create secret generic oficina-secret \
-            --from-literal=DB_PASS="${{ secrets.DB_PASS }}" \
-            --from-literal=JWT_PASS="${{ secrets.JWT_PASS }}" \
-            --from-literal=SMTP_USER="${{ secrets.SMTP_USER }}" \
-            --from-literal=SMTP_PASS="${{ secrets.SMTP_PASS }}" \
-            --dry-run=client -o yaml | kubectl apply -f -
+            --from-literal=DB_PASS="postgres" \
+            --from-literal=JWT_PASS="test-secret-ci" \
+            --from-literal=SMTP_USER="test@test.com" \
+            --from-literal=SMTP_PASS="test-pass"
 
-      - name: Aplicar ConfigMap e manifestos do banco
+      - name: Aplicar manifestos do banco
         run: |
           kubectl apply -f k8s/configmap.yaml
-          kubectl apply -f k8s/pvc.yaml
+          kubectl apply -f k8s/postgres-pvc.yaml
           kubectl apply -f k8s/postgres-deployment.yaml
           kubectl apply -f k8s/postgres-service.yaml
 
       - name: Aguardar banco subir
-        run: kubectl rollout status deployment/postgres --timeout=120s
-
-      - name: Atualizar imagem da API
         run: |
-          kubectl set image deployment/oficina-api \
-            api=${{ env.IMAGE_NAME }}:${{ github.sha }}
+          kubectl rollout status deployment/postgres --timeout=120s
 
-      - name: Aplicar demais manifestos
+      - name: Atualizar imagem no deployment
+        run: |
+          sed -i "s|image:.*oficina-api.*|image: ${{ env.IMAGE_NAME }}:${{ github.sha }}|g" k8s/deployment.yaml
+
+      - name: Aplicar manifestos da API
         run: |
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
           kubectl apply -f k8s/hpa.yaml
 
       - name: Aguardar deploy da API
-        run: kubectl rollout status deployment/oficina-api --timeout=180s
+        run: |
+          kubectl rollout status deployment/oficina-api --timeout=180s
 
       - name: Verificar pods em execução
-        run: kubectl get pods -l app=oficina-api
+        run: |
+          kubectl get pods
+          kubectl get services
+          kubectl get hpa
