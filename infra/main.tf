@@ -1,76 +1,24 @@
 terraform {
   required_providers {
-    kind = {
-      source  = "tehcyx/kind"
-      version = "~> 0.4"
-    }
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = "~> 2.27"
     }
-    docker = {
-      source  = "kreuzwerker/docker"
-      version = "~> 3.0"
-    }
   }
 }
 
-# ─── Providers ────────────────────────────────────────────────────────────────
-
-provider "kind" {}
-
-provider "docker" {
-  host = "unix:///var/run/docker.sock"
-}
+# ─── Provider ─────────────────────────────────────────────────────────────────
+# O cluster Kind deve ser criado antes com: kind create cluster --name oficina
+# Veja o script setup-cluster.sh para criar o cluster
 
 provider "kubernetes" {
-  config_path    = kind_cluster.oficina.kubeconfig_path
+  config_path    = "~/.kube/config"
   config_context = "kind-oficina"
-}
-
-# ─── Cluster Kubernetes local (Kind) ─────────────────────────────────────────
-
-resource "kind_cluster" "oficina" {
-  name           = "oficina"
-  wait_for_ready = true
-
-  kind_config {
-    kind        = "Cluster"
-    api_version = "kind.x-k8s.io/v1alpha4"
-
-    node {
-      role = "control-plane"
-      extra_port_mappings {
-        container_port = 30080
-        host_port      = 3000
-        protocol       = "TCP"
-      }
-    }
-
-    node {
-      role = "worker"
-    }
-  }
-}
-
-# ─── Carregar imagem local no Kind ───────────────────────────────────────────
-
-resource "null_resource" "load_image" {
-  depends_on = [kind_cluster.oficina]
-
-  provisioner "local-exec" {
-    command = "kind load docker-image oficina-api:latest --name oficina"
-  }
-
-  triggers = {
-    cluster = kind_cluster.oficina.name
-  }
 }
 
 # ─── Namespace ───────────────────────────────────────────────────────────────
 
 resource "kubernetes_namespace" "oficina" {
-  depends_on = [kind_cluster.oficina]
   metadata {
     name = "oficina"
   }
@@ -86,12 +34,12 @@ resource "kubernetes_config_map" "oficina" {
   }
 
   data = {
-    DB_HOST    = "postgres-svc"
-    DB_PORT    = "5432"
-    DB_USER    = var.db_user
-    DB_NAME    = var.db_name
-    NODE_ENV   = "production"
-    APP_URL    = "http://localhost:3000"
+    DB_HOST  = "postgres-svc"
+    DB_PORT  = "5432"
+    DB_USER  = var.db_user
+    DB_NAME  = var.db_name
+    NODE_ENV = "production"
+    APP_URL  = "http://localhost:3000"
   }
 }
 
@@ -217,13 +165,13 @@ resource "kubernetes_service" "postgres" {
 # ─── Deployment da API ────────────────────────────────────────────────────────
 
 resource "kubernetes_deployment" "api" {
-  depends_on = [kubernetes_service.postgres, null_resource.load_image]
+  depends_on = [kubernetes_service.postgres]
   metadata {
     name      = "oficina-api"
     namespace = kubernetes_namespace.oficina.metadata[0].name
   }
   spec {
-    replicas = 2
+    replicas = 1
     selector {
       match_labels = { app = "oficina-api" }
     }
@@ -232,8 +180,8 @@ resource "kubernetes_deployment" "api" {
       spec {
         container {
           name              = "api"
-          image             = "oficina-api:latest"
-          image_pull_policy = "IfNotPresent"
+          image             = "guitxgomes/oficina-api:latest"
+          image_pull_policy = "Always"
           port { container_port = 3000 }
 
           dynamic "env" {
@@ -290,24 +238,31 @@ resource "kubernetes_deployment" "api" {
 
           readiness_probe {
             http_get {
-              path = "/"
+              path = "/api-docs"
               port = 3000
             }
-            initial_delay_seconds = 10
-            period_seconds        = 5
+            initial_delay_seconds = 40
+            period_seconds        = 10
+            failure_threshold     = 10
           }
 
           liveness_probe {
             http_get {
-              path = "/"
+              path = "/api-docs"
               port = 3000
             }
-            initial_delay_seconds = 30
-            period_seconds        = 10
+            initial_delay_seconds = 60
+            period_seconds        = 15
+            failure_threshold     = 5
           }
         }
       }
     }
+  }
+
+  timeouts {
+    create = "5m"
+    update = "5m"
   }
 }
 
@@ -344,7 +299,7 @@ resource "kubernetes_horizontal_pod_autoscaler_v2" "api" {
       kind        = "Deployment"
       name        = kubernetes_deployment.api.metadata[0].name
     }
-    min_replicas = 2
+    min_replicas = 1
     max_replicas = 10
     metric {
       type = "Resource"
@@ -379,9 +334,4 @@ output "api_url" {
 output "api_swagger" {
   value       = "http://localhost:3000/api-docs"
   description = "Swagger da API"
-}
-
-output "kubeconfig_path" {
-  value       = kind_cluster.oficina.kubeconfig_path
-  description = "Caminho do kubeconfig gerado"
 }
