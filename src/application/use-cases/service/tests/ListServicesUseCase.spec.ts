@@ -2,7 +2,7 @@ import { ServiceRepository } from "../../../../infrastructure/repositories/Servi
 import { ListServicesUseCase } from "../ListServicesUseCase";
 
 
-jest.mock("../../../infrastructure/repositories/ServiceRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ServiceRepository", () => ({
   ServiceRepository: {
     find: jest.fn(),
   }

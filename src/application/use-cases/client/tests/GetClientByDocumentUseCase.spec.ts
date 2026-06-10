@@ -2,7 +2,7 @@ import { ClientRepository } from "../../../../infrastructure/repositories/Client
 import { GetClientByDocumentUseCase } from "../GetClientByDocumentUseCase";
 
 
-jest.mock("../../../infrastructure/repositories/ClientRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ClientRepository", () => ({
   ClientRepository: {
     findOne: jest.fn(),
   }

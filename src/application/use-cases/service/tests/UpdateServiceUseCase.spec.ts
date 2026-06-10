@@ -1,7 +1,7 @@
 import { ServiceRepository } from "../../../../infrastructure/repositories/ServiceRepository";
 import { UpdateServiceUseCase } from "../UpdateServiceUseCase";
 
-jest.mock("../../../infrastructure/repositories/ServiceRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ServiceRepository", () => ({
   ServiceRepository: {
     findOne: jest.fn(),
     merge: jest.fn(),

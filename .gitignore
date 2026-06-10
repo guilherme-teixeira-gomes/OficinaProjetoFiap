@@ -1,0 +1,44 @@
+# ─── Node ────────────────────────────────────────────────────────────────────
+node_modules/
+dist/
+build/
+
+# ─── Ambiente ─────────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.test
+.env.production
+
+# ─── Terraform ────────────────────────────────────────────────────────────────
+infra/terraform.tfvars
+infra/.terraform/
+infra/.terraform.lock.hcl
+infra/terraform.tfstate
+infra/terraform.tfstate.backup
+infra/*.tfplan
+
+# ─── Testes e cobertura ───────────────────────────────────────────────────────
+coverage/
+*.lcov
+
+# ─── Docker ───────────────────────────────────────────────────────────────────
+.dockerignore
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── Sistema operacional ──────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── IDEs ─────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ─── TypeScript ───────────────────────────────────────────────────────────────
+*.tsbuildinfo

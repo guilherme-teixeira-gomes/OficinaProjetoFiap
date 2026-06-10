@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { ClientController } from "../controllers/ClientController";
 import { ServiceOrderController } from "../controllers/ServiceOrderController";
-import { VehicleController } from "../controllers/VehiclesController.ts";
 import { PartController } from "../controllers/PartController";
 import { ServiceController } from "../controllers/ServiceController";
 import { UserController } from "../controllers/UserController";
@@ -10,80 +9,81 @@ import { StockController } from "../controllers/StockController";
 import { AuthMiddleware } from "../../auth/middlewares/AuthMiddleware";
 import { createClientValidation } from "../../../shared/validations/clientValidations";
 import { createVehicleValidation } from "../../../shared/validations/vehicleValidations";
-
+import { VehicleController } from "../controllers/VehiclesController";
 
 export const routes = Router();
 
-// Rotas públicas
-routes.get('/static');
+// ─── Rotas públicas ───────────────────────────────────────────────────────────
 
-// Criacao de usuário
+// Criação de usuário e login
 routes.post("/user", new UserController().handle);
-
-// Login de usuário
 routes.post("/user/login", new UserController().login);
 
-// Busca de cliente por cnpj ou cpf
+// Busca de cliente por CPF/CNPJ (para o formulário de abertura de OS)
 routes.get("/clients/document/:document", new ClientController().getDocument);
 
-// Busca de service order por id
+// Consulta de OS por ID — pública para o cliente acompanhar sem login
 routes.get("/service-order/:id", new ServiceOrderController().get);
 
-// Aprovacao de ordem de servico por parte do cliente
-routes.post("/service-order/:id/approve", new ServiceOrderController().approve);
+// Consulta de status da OS — pública para o cliente acompanhar
+routes.get("/service-order/:id/status", new ServiceOrderController().getStatus);
 
-// Middleware de autenticação
+// Aprovação/recusa de orçamento — notificação externa do cliente (sem login)
+routes.post("/service-order/:id/approve", new ServiceOrderController().approve);
+routes.post("/service-order/:id/reject", new ServiceOrderController().reject);
+
+// ─── Middleware de autenticação (tudo abaixo exige JWT) ───────────────────────
 routes.use(AuthMiddleware);
 
-// Rotas de usuário
+// ─── Usuário ─────────────────────────────────────────────────────────────────
 routes.post("/user/logout", new UserController().logout);
 
-// Rotas de clientes
+// ─── Clientes ────────────────────────────────────────────────────────────────
 routes.post("/clients", createClientValidation, new ClientController().handle);
 routes.get("/clients", new ClientController().list);
 routes.get("/clients/:id", new ClientController().get);
+routes.put("/clients/:id", new ClientController().update);
+routes.delete("/clients/:id", new ClientController().delete);
 
-// Rotas de estoque
+// ─── Estoque ─────────────────────────────────────────────────────────────────
 routes.get("/stock/low", new StockController().getLowStock);
-routes.get("/stock/critical", new StockController().getCriticalStock); 
-routes.get("/stock/movements", new StockController().getMovements);  
-routes.get("/stock/summary",  new StockController().getStockSummary); 
-routes.post("/stock/add",  new StockController().addStock); 
+routes.get("/stock/critical", new StockController().getCriticalStock);
+routes.get("/stock/movements", new StockController().getMovements);
+routes.get("/stock/summary", new StockController().getStockSummary);
+routes.post("/stock/add", new StockController().addStock);
 routes.get("/stock/check/:partId/:quantity", new StockController().checkAvailability);
 
-// Rotas de ordem de serviço
-routes.post("/service-order/", new ServiceOrderController().handle);
+// ─── Ordens de serviço ────────────────────────────────────────────────────────
+routes.post("/service-order", new ServiceOrderController().handle);
 routes.get("/service-order", new ServiceOrderController().list);
-routes.get("/service-order/:id", new ServiceOrderController().get);
-routes.get("/service-order/:id/status", new ServiceOrderController().getStatus); // NOVA
 routes.post("/service-order/:id/accept", new ServiceOrderController().acceptOrder);
-routes.post("/service-order/:id/reject", new ServiceOrderController().reject); // NOVA
 routes.post("/service-order/:id/diagnostic", new ServiceOrderController().addDiagnostic);
 routes.post("/service-order/:id/finish-diagnostic", new ServiceOrderController().finishDiagnostic);
-routes.post("/service-order/:id/approve", new ServiceOrderController().approve);
 routes.post("/service-order/:id/finish", new ServiceOrderController().finish);
 routes.post("/service-order/:id/deliver", new ServiceOrderController().deliver);
 
-// Rotas de execucao de servicos
+// ─── Execuções de serviço ─────────────────────────────────────────────────────
 routes.post("/service-executions/start", new ServiceExecutionController().startService);
-routes.post("/service-executions/finish",  new ServiceExecutionController().finishService);
-routes.get("/service-executions/average/:serviceId",  new ServiceExecutionController().getAverageByService);
-routes.get("/service-executions/averages",  new ServiceExecutionController().getAllAverages);
+routes.post("/service-executions/finish", new ServiceExecutionController().finishService);
+routes.get("/service-executions/average/:serviceId", new ServiceExecutionController().getAverageByService);
+routes.get("/service-executions/averages", new ServiceExecutionController().getAllAverages);
 routes.get("/service-executions/timeline/:serviceOrderId", new ServiceExecutionController().getTimeline);
 
-// Rotas de veículos
+// ─── Veículos ─────────────────────────────────────────────────────────────────
 routes.post("/vehicles", createVehicleValidation, new VehicleController().handle);
 routes.get("/vehicles", new VehicleController().list);
 routes.get("/vehicles/:id", new VehicleController().get);
+routes.put("/vehicles/:id", new VehicleController().update);
+routes.delete("/vehicles/:id", new VehicleController().delete);
 
-// Rotas de peças
+// ─── Peças ────────────────────────────────────────────────────────────────────
 routes.post("/parts", new PartController().handle);
 routes.get("/parts", new PartController().list);
 routes.get("/parts/:id", new PartController().get);
 routes.put("/parts/:id", new PartController().update);
 routes.delete("/parts/:id", new PartController().delete);
 
-// Rotas de serviços
+// ─── Serviços ─────────────────────────────────────────────────────────────────
 routes.post("/services", new ServiceController().handle);
 routes.get("/services", new ServiceController().list);
 routes.get("/services/:id", new ServiceController().get);

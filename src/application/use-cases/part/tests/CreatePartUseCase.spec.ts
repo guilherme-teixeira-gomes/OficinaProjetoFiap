@@ -2,7 +2,7 @@ import { PartRepository } from "../../../../infrastructure/repositories/PartRepo
 import { CreatePartUseCase } from "../CreatePartUseCase";
 
 
-jest.mock("../../../infrastructure/repositories/PartRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
   PartRepository: {
     create: jest.fn(),
     save: jest.fn(),

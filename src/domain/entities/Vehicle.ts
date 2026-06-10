@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, DeleteDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Client } from "./Client";
 import { ServiceOrder } from "./ServiceOrder";
 
@@ -18,6 +18,9 @@ export class Vehicle {
 
   @Column()
   year: number;
+
+  @DeleteDateColumn({ nullable: true })
+  deletedAt: Date;
 
   @ManyToOne(() => Client, (client) => client.vehicles)
   client: Client;

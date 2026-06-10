@@ -2,7 +2,7 @@ import { PartRepository } from "../../../../infrastructure/repositories/PartRepo
 import { GetPartByIdUseCase } from "../GetPartByIdUseCase";
 
 
-jest.mock("../../../infrastructure/repositories/PartRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
   PartRepository: {
     findOne: jest.fn(),
   }

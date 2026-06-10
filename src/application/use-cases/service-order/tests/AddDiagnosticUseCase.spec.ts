@@ -5,13 +5,13 @@ import { ServiceRepository } from "../../../../infrastructure/repositories/Servi
 import { AddDiagnosticUseCase } from "../AddDiagnosticUseCase";
 
 
-jest.mock("../../infrastructure/repositories/ServiceRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ServiceRepository", () => ({
   ServiceRepository: {
     findByIds: jest.fn(),
   }
 }));
 
-jest.mock("../../infrastructure/repositories/PartRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
   PartRepository: {
     findByIds: jest.fn(),
   }
@@ -23,7 +23,7 @@ jest.mock("../../../../infrastructure/repositories/ServiceOrderRepository", () =
   }
 }));
 
-jest.mock("../../infrastructure/repositories/DiagnosticRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/DiagnosticRepository", () => ({
   DiagnosticRepository: {
     create: jest.fn(),
     save: jest.fn(),

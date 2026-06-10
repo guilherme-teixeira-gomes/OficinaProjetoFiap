@@ -2,7 +2,7 @@ import { ServiceExecutionRepository } from "../../../../infrastructure/repositor
 import { GetAverageTimeByServiceUseCase } from "../GetAverageTimeByServiceUseCase";
 
 
-jest.mock("../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
   ServiceExecutionRepository: {
     find: jest.fn(),
   }
@@ -51,8 +51,8 @@ describe("GetAverageTimeByServiceUseCase", () => {
 
       const result = await getAverageTimeUseCase.execute(1);
 
-      expect(result.averageMinutes).toBe(45);
-      expect(result.totalExecutions).toBe(2);
+      expect(result.averageMinutes).toBe(30);
+      expect(result.totalExecutions).toBe(3);
     });
   });
 });

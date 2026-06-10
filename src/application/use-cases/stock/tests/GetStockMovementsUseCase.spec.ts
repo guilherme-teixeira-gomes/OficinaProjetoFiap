@@ -2,7 +2,7 @@ import { StockMovementRepository } from "../../../../infrastructure/repositories
 import { GetStockMovementsUseCase } from "../GetStockMovementsUseCase";
 
 
-jest.mock("../../../infrastructure/repositories/StockMovementRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/StockMovementRepository", () => ({
   StockMovementRepository: {
     createQueryBuilder: jest.fn(),
   }
@@ -133,6 +133,6 @@ describe("GetStockMovementsUseCase", () => {
       type: "OUT"
     });
 
-    expect(mockQueryBuilder.andWhere).toHaveBeenCalledTimes(4);
+    expect(mockQueryBuilder.andWhere).toHaveBeenCalledTimes(5);
   });
 });

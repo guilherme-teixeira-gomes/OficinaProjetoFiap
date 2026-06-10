@@ -2,7 +2,7 @@ import { ServiceExecutionRepository } from "../../../../infrastructure/repositor
 import { StartServiceExecutionUseCase } from "../StartServiceExecutionUseCase";
 
 
-jest.mock("../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
   ServiceExecutionRepository: {
     findOne: jest.fn(),
     create: jest.fn(),

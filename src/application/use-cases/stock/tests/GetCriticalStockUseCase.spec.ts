@@ -2,7 +2,7 @@ import { PartRepository } from "../../../../infrastructure/repositories/PartRepo
 import { GetCriticalStockUseCase } from "../GetCriticalStockUseCase";
 
 
-jest.mock("../../../infrastructure/repositories/PartRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
   PartRepository: {
     createQueryBuilder: jest.fn(),
   }

@@ -3,15 +3,25 @@ import { ServiceOrderRepository } from "../../../../infrastructure/repositories/
 import { VehicleRepository } from "../../../../infrastructure/repositories/VehicleRepository";
 import { CreateServiceOrderUseCase } from "../CreateServiceOrderUseCase";
 
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: {
+    getRepository: jest.fn().mockReturnValue({
+      create: jest.fn().mockReturnValue({ id: 1, status: "RECEBIDA", budget: 0 }),
+      save: jest.fn().mockResolvedValue({ id: 1, status: "RECEBIDA", budget: 0 }),
+      findOne: jest.fn().mockResolvedValue({ id: 1, status: "RECEBIDA", budget: 0 }),
+    }),
+    isInitialized: true,
+  }
+}));
 
-jest.mock("../../infrastructure/repositories/ClientRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ClientRepository", () => ({
   ClientRepository: {
     findOne: jest.fn(),
     save: jest.fn(),
   }
 }));
 
-jest.mock("../../infrastructure/repositories/VehicleRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/VehicleRepository", () => ({
   VehicleRepository: {
     findOne: jest.fn(),
     save: jest.fn(),

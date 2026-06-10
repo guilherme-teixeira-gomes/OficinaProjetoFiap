@@ -1,7 +1,7 @@
 import { ClientRepository } from "../../../../infrastructure/repositories/ClientRepository";
 import { CreateClientUseCase } from "../CreateClientUseCase";
 
-jest.mock("../../../infrastructure/repositories/ClientRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ClientRepository", () => ({
   ClientRepository: {
     findOne: jest.fn(),
     create: jest.fn(),

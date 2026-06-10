@@ -2,7 +2,7 @@ import { VehicleRepository } from "../../../../infrastructure/repositories/Vehic
 import { GetVehicleByIdUseCase } from "../GetVehicleByIdUseCase";
 
 
-jest.mock("../../../infrastructure/repositories/VehicleRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/VehicleRepository", () => ({
   VehicleRepository: {
     findOne: jest.fn(),
   }

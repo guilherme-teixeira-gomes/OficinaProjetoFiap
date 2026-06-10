@@ -1,4 +1,4 @@
-import { sendStatusEmail } from "../../../infrastructure/email/EmailService";
+import { sendEmail, emailStatusAtualizado } from "../../../infrastructure/email/EmailService";
 import { ServiceOrderRepository } from "../../../infrastructure/repositories/ServiceOrderRepository";
 
 
@@ -19,7 +19,10 @@ export class RejectOrderUseCase {
     const saved = await ServiceOrderRepository.save(order);
     
     if (saved.client?.email) {
-      await sendStatusEmail(saved.client.email, saved.id, saved.status);
+      const { subject, html } = emailStatusAtualizado(saved.client.name, saved.id, saved.status);
+      await sendEmail({ to: saved.client.email, subject, html }).catch(err => 
+        console.error("Falha ao enviar email:", err.message)
+      );
     }
     
     return { message: "Orçamento recusado", order: saved };

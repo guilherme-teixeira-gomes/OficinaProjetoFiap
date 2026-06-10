@@ -3,7 +3,7 @@ import { Between } from "typeorm";
 import { ServiceExecutionRepository } from "../../../../infrastructure/repositories/ServiceExecutionRepository";
 import { GetExecutionsByPeriodUseCase } from "../GetExecutionsByPeriodUseCase";
 
-jest.mock("../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
   ServiceExecutionRepository: {
     find: jest.fn(),
   }

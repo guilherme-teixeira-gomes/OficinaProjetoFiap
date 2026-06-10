@@ -3,14 +3,14 @@ import { StockMovementRepository } from "../../../../infrastructure/repositories
 import { ReserveStockUseCase } from "../ReserveStockUseCase";
 
 
-jest.mock("../../../infrastructure/repositories/PartRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
   PartRepository: {
     findOne: jest.fn(),
     save: jest.fn(),
   }
 }));
 
-jest.mock("../../../infrastructure/repositories/StockMovementRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/StockMovementRepository", () => ({
   StockMovementRepository: {
     create: jest.fn(),
     save: jest.fn(),

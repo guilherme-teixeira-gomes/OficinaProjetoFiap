@@ -3,13 +3,13 @@ import { ServiceOrderRepository } from "../../../../infrastructure/repositories/
 import { GetServiceOrderTimelineUseCase } from "../GetServiceOrderTimelineUseCase";
 
 
-jest.mock("../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
   ServiceExecutionRepository: {
     find: jest.fn(),
   }
 }));
 
-jest.mock("../../../infrastructure/repositories/ServiceOrderRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ServiceOrderRepository", () => ({
   ServiceOrderRepository: {
     findOne: jest.fn(),
   }

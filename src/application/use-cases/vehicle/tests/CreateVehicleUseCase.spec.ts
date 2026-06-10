@@ -3,13 +3,13 @@ import { VehicleRepository } from "../../../../infrastructure/repositories/Vehic
 import { CreateVehicleUseCase } from "../CreateVehicleUseCase";
 
 
-jest.mock("../../../infrastructure/repositories/ClientRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ClientRepository", () => ({
   ClientRepository: {
     findOne: jest.fn(),
   }
 }));
 
-jest.mock("../../../infrastructure/repositories/VehicleRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/VehicleRepository", () => ({
   VehicleRepository: {
     findOne: jest.fn(),
     create: jest.fn(),

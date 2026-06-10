@@ -2,7 +2,7 @@ import { PartRepository } from "../../../../infrastructure/repositories/PartRepo
 import { GetStockSummaryUseCase } from "../GetStockSummaryUseCase";
 
 
-jest.mock("../../../infrastructure/repositories/PartRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
   PartRepository: {
     find: jest.fn(),
   }
@@ -44,7 +44,7 @@ describe("GetStockSummaryUseCase", () => {
     
     // Peça D: estoque baixo (8 < 10, mas verifica minimumStock que é 15)
     // A lógica atual: stock <= minimumStock ? "CRÍTICO" : stock < 10 ? "BAIXO" : "NORMAL"
-    expect(result.partsByStock[3].status).toBe("BAIXO");
+    expect(result.partsByStock[3].status).toBe("CRÍTICO");
   });
 
   it("deve retornar resumo vazio quando não há peças", async () => {

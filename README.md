@@ -1,117 +1,292 @@
-# 🛠️ Tech Challenge - Sistema de Oficina
+# 🛠️ Tech Challenge — Sistema de Oficina Mecânica
 
-## 🚗 Visão Geral
+## Fase 2: Qualidade, Resiliência e Escalabilidade
 
-Este projeto é o MVP do back-end de um **Sistema Integrado de Atendimento e Execução de Serviços** para uma oficina mecânica.
+Sistema back-end para gestão de ordens de serviço de oficina mecânica, evoluído para suportar infraestrutura escalável com Kubernetes, automação de deploy via CI/CD e provisionamento com Terraform.
 
-O sistema tem como objetivo substituir processos manuais, garantindo:
+---
 
-- ✅ Eficiência operacional
-- ✅ Rastreabilidade das ordens de serviço
-- ✅ Segurança e integridade dos dados
+## Arquitetura da Solução
 
-## 📋 Requisitos Atendidos - Fase 2
+```
+┌─────────────────────────────────────────────────────────┐
+│                     CI/CD (GitHub Actions)               │
+│  push → test → sonar → docker build → kubectl deploy    │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────┐
+│               Kubernetes Cluster (Kind local)            │
+│                                                          │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │  HPA (2–10 réplicas, CPU 50% / Memória 80%)      │   │
+│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐  │   │
+│  │  │ API Pod 1  │  │ API Pod 2  │  │ API Pod N  │  │   │
+│  │  └─────┬──────┘  └─────┬──────┘  └─────┬──────┘  │   │
+│  │        └───────────────┼───────────────┘         │   │
+│  │                   oficina-svc                     │   │
+│  │                (NodePort :30080)                  │   │
+│  └───────────────────────┬──────────────────────────┘   │
+│                          │                               │
+│  ┌───────────────────────▼──────────────────────────┐   │
+│  │  PostgreSQL Pod — postgres-svc (ClusterIP :5432) │   │
+│  │  PersistentVolumeClaim 1Gi                        │   │
+│  └──────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────┘
+                      │
+              SMTP Ethereal (email)
+```
 
-### ✅ Evolução da Aplicação
+### Componentes
 
-| Requisito | Status | Implementação |
-|-----------|--------|----------------|
-| Clean Code | ✅ | Código refatorado com nomes claros e coesão |
-| Clean Architecture/Hexagonal | ✅ | Camadas separadas (use-cases, domain, infrastructure) |
-| Testes automatizados | ✅ | Unitários para todos os use-cases críticos |
+| Componente | Tecnologia | Descrição |
+|---|---|---|
+| API | Node.js 20 + TypeScript + Express | Back-end REST com Clean Architecture |
+| Banco | PostgreSQL 15 | Persistência das OS, clientes, veículos e peças |
+| Autenticação | JWT | Rotas protegidas por token |
+| Email | Nodemailer + SMTP | Notificações de status ao cliente |
+| Containerização | Docker + Docker Compose | Ambiente de desenvolvimento |
+| Orquestração | Kubernetes (Kind) | Produção com auto-scaling |
+| IaC | Terraform | Provisionamento do cluster e recursos |
+| CI/CD | GitHub Actions | Build, testes, análise e deploy automatizados |
+| Qualidade | SonarQube | Análise estática do código |
 
-### ✅ Novas APIs
+---
 
-| Endpoint | Método | Descrição | Status |
-|----------|--------|-----------|--------|
-| `/service-order` | POST | Abertura de OS com serviços e peças | ✅ |
-| `/service-order/:id/status` | GET | Consulta de status da OS | ✅ |
-| `/service-order/:id/approve` | POST | Aprovação de orçamento | ✅ |
-| `/service-order/:id/reject` | POST | Recusa de orçamento | ✅ |
-| `/service-order` | GET | Listagem com ordenação e exclusão | ✅ |
+## Fluxo de Status da OS
 
-## ⚡ Funcionalidades
+```
+RECEBIDA → (aceitar) → DIAGNOSTICO → (finalizar diagnóstico) →
+AGUARDANDO_APROVACAO → (cliente aprova) → EXECUCAO →
+(finalizar) → FINALIZADA → (entregar) → ENTREGUE
+```
 
-### 📌 Ordem de Serviço (OS)
+---
 
-- Cadastro de cliente (CPF/CNPJ)
-- Cadastro de veículo
-- Inclusão de serviços e peças
-- Geração automática de orçamento
-- Envio para aprovação
+## Execução Local
 
-### 🔄 Acompanhamento
+### Pré-requisitos
 
-Status da OS:
+- Docker e Docker Compose instalados
+- Node.js 20 (opcional, para rodar sem Docker)
 
-- Recebida
-- Em diagnóstico
-- Aguardando aprovação
-- Em execução
-- Finalizada
-- Entregue
+### Subir com Docker Compose
 
-### 🧩 Gestão
+```bash
+# 1. Clone o repositório
+git clone https://github.com/seu-usuario/oficina-api.git
+cd oficina-api
 
-- CRUD de clientes
-- CRUD de veículos
-- CRUD de serviços
-- CRUD de peças e estoque
-- Listagem e detalhamento de OS
+# 2. Configure as variáveis de ambiente
+cp .env.example .env
+# Edite o .env com seus valores
 
-### 🔐 Segurança
+# 3. Suba os containers
+docker compose up -d
 
-- Autenticação com JWT
-- Validação de dados
-- Testes automatizados
+# 4. Execute as migrations
+docker compose exec api npm run migration:run
 
-## 🛠️ Tecnologias
+# 5. Acesse a API
+curl http://localhost:3000
+# Swagger: http://localhost:3000/api-docs
+```
 
-- Node.js 20
-- TypeScript
-- PostgreSQL
+### Rodar localmente sem Docker
+
+```bash
+npm install
+npm run migration:run
+npm run dev
+```
+
+---
+
+## Deploy em Kubernetes
+
+### Pré-requisitos
+
+- kubectl instalado
+- Cluster Kubernetes acessível (Kind, Minikube ou cloud)
+- Imagem Docker disponível (local ou registry)
+
+### Passo a passo
+
+```bash
+# 1. Crie o Secret com as credenciais reais
+kubectl create secret generic oficina-secret \
+  --from-literal=DB_PASS="sua_senha_postgres" \
+  --from-literal=JWT_PASS="seu_jwt_secret" \
+  --from-literal=SMTP_USER="seu@email.com" \
+  --from-literal=SMTP_PASS="sua_senha_smtp"
+
+# 2. Aplique os manifestos em ordem
+kubectl apply -f k8s/configmap.yaml
+kubectl apply -f k8s/pvc.yaml
+kubectl apply -f k8s/postgres-deployment.yaml
+kubectl apply -f k8s/postgres-service.yaml
+
+# 3. Aguarde o banco estar pronto
+kubectl rollout status deployment/postgres
+
+# 4. Aplique a API
+kubectl apply -f k8s/api-deployment.yaml
+kubectl apply -f k8s/api-service.yaml
+kubectl apply -f k8s/hpa.yaml
+
+# 5. Verifique os pods
+kubectl get pods
+kubectl get hpa
+
+# 6. Acesse a API (Kind/Minikube)
+# http://localhost:30080
+# http://localhost:30080/api-docs
+```
+
+### Verificar escalabilidade (HPA)
+
+```bash
+# Simular carga (em outro terminal)
+kubectl run -i --tty load-generator --rm --image=busybox \
+  --restart=Never -- sh -c "while true; do \
+  wget -q -O- http://oficina-svc/service-order; done"
+
+# Acompanhar o HPA escalando
+kubectl get hpa oficina-api-hpa --watch
+```
+
+---
+
+## Provisionamento com Terraform
+
+### Pré-requisitos
+
+- Terraform >= 1.5 instalado
+- Docker instalado e rodando
+- Kind instalado (`brew install kind` ou https://kind.sigs.k8s.io)
+- Imagem `oficina-api:latest` buildada localmente
+
+### Passo a passo
+
+```bash
+cd infra
+
+# 1. Copie e preencha as variáveis
+cp terraform.tfvars.example terraform.tfvars
+# Edite terraform.tfvars com suas credenciais reais
+
+# 2. Inicialize os providers
+terraform init
+
+# 3. Visualize o que será criado
+terraform plan
+
+# 4. Aplique (cria cluster Kind + todos os recursos K8s)
+terraform apply
+
+# 5. Para destruir tudo
+terraform destroy
+```
+
+### Recursos criados pelo Terraform
+
+| Recurso | Descrição |
+|---|---|
+| `kind_cluster.oficina` | Cluster Kubernetes local com 1 control-plane e 1 worker |
+| `kubernetes_namespace.oficina` | Namespace isolado para o projeto |
+| `kubernetes_config_map.oficina` | Variáveis de ambiente não-sensíveis |
+| `kubernetes_secret.oficina` | Credenciais sensíveis (banco, JWT, SMTP) |
+| `kubernetes_persistent_volume_claim.postgres` | Volume de 1Gi para o banco |
+| `kubernetes_deployment.postgres` | Pod do PostgreSQL 15 |
+| `kubernetes_service.postgres` | ClusterIP interno para o banco |
+| `kubernetes_deployment.api` | 2 réplicas da API |
+| `kubernetes_service.api` | NodePort 30080 → 3000 |
+| `kubernetes_horizontal_pod_autoscaler_v2.api` | HPA 2–10 réplicas |
+
+---
+
+## CI/CD Pipeline (GitHub Actions)
+
+### Fluxo
+
+```
+push/PR para main
+    │
+    ├── [test] npm ci → npm test → npm run build
+    │
+    ├── [sonarqube] análise estática (apenas push)
+    │
+    ├── [docker-build] build + push com tags :latest e :sha (apenas push)
+    │
+    └── [deploy] kubectl apply nos manifestos K8s (apenas push na main)
+```
+
+### Secrets necessários no GitHub
+
+| Secret | Descrição |
+|---|---|
+| `DOCKER_USERNAME` | Usuário do Docker Hub |
+| `DOCKER_PASSWORD` | Senha/token do Docker Hub |
+| `SONAR_TOKEN` | Token do SonarQube |
+| `KUBECONFIG` | kubeconfig em base64 (`base64 ~/.kube/config`) |
+| `DB_PASS` | Senha do banco |
+| `JWT_PASS` | Chave JWT |
+| `SMTP_USER` | Usuário SMTP |
+| `SMTP_PASS` | Senha SMTP |
+
+---
+
+## APIs
+
+- **Swagger interativo:** http://localhost:3000/api-docs
+- **Collection Postman:** [link da collection](SUBSTITUIR_LINK_POSTMAN)
+
+### Endpoints principais
+
+| Método | Endpoint | Auth | Descrição |
+|---|---|---|---|
+| POST | `/service-order` | ✓ | Abrir nova OS |
+| GET | `/service-order` | ✓ | Listar OS (ordenadas por status) |
+| GET | `/service-order/:id` | — | Consultar OS |
+| GET | `/service-order/:id/status` | — | Consultar status da OS |
+| POST | `/service-order/:id/accept` | ✓ | Aceitar OS (mecânico) |
+| POST | `/service-order/:id/diagnostic` | ✓ | Adicionar diagnóstico |
+| POST | `/service-order/:id/finish-diagnostic` | ✓ | Finalizar diagnóstico (envia email) |
+| POST | `/service-order/:id/approve` | — | Aprovar orçamento (cliente) |
+| POST | `/service-order/:id/reject` | — | Recusar orçamento (cliente) |
+| POST | `/service-order/:id/finish` | ✓ | Finalizar execução |
+| POST | `/service-order/:id/deliver` | ✓ | Registrar entrega |
+
+---
+
+## Testes
+
+```bash
+# Rodar testes
+npm test
+
+# Com cobertura
+npm run test:coverage
+```
+
+---
+
+## Vídeo Demonstrativo
+
+[Assistir no YouTube](SUBSTITUIR_LINK_VIDEO) — até 15 minutos demonstrando:
+- Deploy da aplicação
+- Execução do pipeline CI/CD
+- Consumo das APIs via Swagger
+- Escalabilidade automática com HPA
+
+---
+
+## Tecnologias
+
+- Node.js 20 + TypeScript 5
+- Express + TypeORM + PostgreSQL 15
+- Jest (testes unitários)
 - Docker + Docker Compose
-- Kubernetes (Kind/Minikube)
-- GitHub Actions (CI/CD)
-- Terraform (IaC)
-
-## 🏗️ Arquitetura da Solução
-
-```mermaid
-graph TB
-    subgraph "Cliente"
-        A[Cliente/Postman] --> B[API Gateway / Load Balancer]
-    end
-
-    subgraph "Kubernetes Cluster"
-        B --> C[Service API - NodePort]
-        C --> D1[Pod: API - Réplica 1]
-        C --> D2[Pod: API - Réplica 2]
-        C --> D3[Pod: API - Réplica N]
-        
-        D1 --> E[Service PostgreSQL]
-        D2 --> E
-        D3 --> E
-        
-        E --> F[Pod: PostgreSQL]
-        F --> G[Persistent Volume]
-        
-        H[Horizontal Pod Autoscaler] -.-> D1
-        H -.-> D2
-        H -.-> D3
-    end
-
-    subgraph "Recursos Externos"
-        D1 -.-> I[SMTP - Ethereal]
-        D2 -.-> I
-        D3 -.-> I
-    end
-
-    subgraph "CI/CD Pipeline"
-        J[GitHub] --> K[GitHub Actions]
-        K --> L[Docker Build]
-        L --> M[Docker Registry]
-        M --> D1
-        M --> D2
-        M --> D3
-    end
+- Kubernetes (Kind)
+- Terraform >= 1.5
+- GitHub Actions
+- SonarQube

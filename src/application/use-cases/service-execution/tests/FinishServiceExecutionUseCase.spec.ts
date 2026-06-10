@@ -3,7 +3,7 @@ import { ServiceOrderRepository } from "../../../../infrastructure/repositories/
 import { FinishServiceExecutionUseCase } from "../FinishServiceExecutionUseCase";
 
 
-jest.mock("../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
   ServiceExecutionRepository: {
     findOne: jest.fn(),
     save: jest.fn(),
@@ -11,7 +11,7 @@ jest.mock("../../../infrastructure/repositories/ServiceExecutionRepository", () 
   }
 }));
 
-jest.mock("../../../infrastructure/repositories/ServiceOrderRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ServiceOrderRepository", () => ({
   ServiceOrderRepository: {
     findOne: jest.fn(),
     save: jest.fn(),

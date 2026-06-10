@@ -11,7 +11,8 @@ import { RestoreStockUseCase } from "../stock/RestoreStockUseCase";
 
 // Service Execution Use Cases
 import { CreateExecutionsFromApprovedOrderUseCase } from "../service-execution/CreateExecutionsFromApprovedOrderUseCase";
-import { sendStatusEmail } from "../../../infrastructure/email/EmailService";
+import { sendEmail, emailStatusAtualizado } from "../../../infrastructure/email/EmailService";
+
 
 interface PartWithQuantity {
   part: any;
@@ -152,7 +153,10 @@ export class ApproveOrderUseCase {
   
     // Notificação por e-mail
     if (result?.client?.email) {
-      await sendStatusEmail(result.client.email, result.id, result.status);
+      const { subject, html } = emailStatusAtualizado(result.client.name, result.id, result.status);
+      await sendEmail({ to: result.client.email, subject, html }).catch(err =>
+        console.error("Falha ao enviar email:", err.message)
+      );
     }
   
     return {

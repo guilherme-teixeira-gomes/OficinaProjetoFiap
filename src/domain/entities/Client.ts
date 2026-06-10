@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Vehicle } from "./Vehicle";
 import { ServiceOrder } from "./ServiceOrder";
 
@@ -13,7 +13,7 @@ export class Client {
   name: string;
 
   @Column({ type: "varchar", length: 18, unique: true })
-  document: string; 
+  document: string;
 
   @Column({ type: "varchar", length: 150 })
   email: string;
@@ -23,6 +23,9 @@ export class Client {
 
   @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   createdAt: Date;
+
+  @DeleteDateColumn({ nullable: true })
+  deletedAt: Date;
 
   @OneToMany(() => Vehicle, (vehicle) => vehicle.client)
   vehicles: Vehicle[];

@@ -2,7 +2,7 @@ import { ServiceExecutionRepository } from "../../../../infrastructure/repositor
 import { GetAllServicesAverageUseCase } from "../GetAllServicesAverageUseCase";
 
 
-jest.mock("../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
   ServiceExecutionRepository: {
     find: jest.fn(),
   }

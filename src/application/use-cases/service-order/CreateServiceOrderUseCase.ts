@@ -4,14 +4,13 @@ import { CreateServiceOrderDTO } from "../../../shared/types/service-order.types
 import { ClientRepository } from "../../../infrastructure/repositories/ClientRepository";
 import { VehicleRepository } from "../../../infrastructure/repositories/VehicleRepository";
 import { validateDocument, validatePlate } from "../../../shared/helpers/helpers";
-import { AppDataSource } from "../../../infrastructure/database/data-source";
-import { ServiceOrder } from "../../../domain/entities/ServiceOrder";
+import { ServiceOrderRepository } from "../../../infrastructure/repositories/ServiceOrderRepository";
 
 
 
 export class CreateServiceOrderUseCase {
   async create(data: CreateServiceOrderDTO) {
-    const ServiceOrderRepository = AppDataSource.getRepository(ServiceOrder);
+   
     if (data.client?.document) {
       data.client.document = validateDocument(data.client.document);
     }

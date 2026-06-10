@@ -2,7 +2,7 @@ import { ServiceRepository } from "../../../../infrastructure/repositories/Servi
 import { DeleteServiceUseCase } from "../DeleteServiceUseCase";
 
 
-jest.mock("../../../infrastructure/repositories/ServiceRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ServiceRepository", () => ({
   ServiceRepository: {
     findOne: jest.fn(),
     remove: jest.fn(),

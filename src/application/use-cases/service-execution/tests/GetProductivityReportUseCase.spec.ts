@@ -2,7 +2,7 @@ import { GetExecutionsByPeriodUseCase } from "../GetExecutionsByPeriodUseCase";
 import { GetProductivityReportUseCase } from "../GetProductivityReportUseCase";
 
 
-jest.mock("./GetExecutionsByPeriodUseCase");
+jest.mock("../GetExecutionsByPeriodUseCase");
 
 describe("GetProductivityReportUseCase", () => {
   let getProductivityReportUseCase: GetProductivityReportUseCase;

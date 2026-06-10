@@ -3,7 +3,7 @@ import { UserRepository } from "../../../../infrastructure/repositories/UserRepo
 import { AcceptOrderUseCase } from "../AcceptOrderUseCase";
 
 
-jest.mock("../../infrastructure/repositories/UserRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/UserRepository", () => ({
   UserRepository: {
     findOne: jest.fn(),
   }

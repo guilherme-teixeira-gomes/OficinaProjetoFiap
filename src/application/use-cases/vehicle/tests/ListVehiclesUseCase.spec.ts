@@ -1,7 +1,7 @@
 import { VehicleRepository } from "../../../../infrastructure/repositories/VehicleRepository";
 import { ListVehiclesUseCase } from "../ListVehiclesUseCase";
 
-jest.mock("../../../infrastructure/repositories/VehicleRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/VehicleRepository", () => ({
   VehicleRepository: {
     find: jest.fn(),
   }

@@ -3,36 +3,20 @@ import { CreateClientUseCase } from "../../../application/use-cases/client/Creat
 import { ListClientsUseCase } from "../../../application/use-cases/client/ListClientsUseCase";
 import { GetClientByIdUseCase } from "../../../application/use-cases/client/GetClientByIdUseCase";
 import { GetClientByDocumentUseCase } from "../../../application/use-cases/client/GetClientByDocumentUseCase";
-
-
+import { UpdateClientUseCase } from "../../../application/use-cases/client/UpdateClientUseCase";
+import { DeleteClientUseCase } from "../../../application/use-cases/client/DeleteClientUseCase";
 
 export class ClientController {
 
   async handle(req: Request, res: Response) {
-
     try {
-
       const service = new CreateClientUseCase();
       const { name, document, email, phone } = req.body;
-
-
-      const client = await service.execute({
-        name,
-        document,
-        email,
-        phone
-      });
-
+      const client = await service.execute({ name, document, email, phone });
       return res.status(201).json(client);
-
     } catch (error: any) {
-
-      return res.status(400).json({
-        error: error.message
-      });
-
+      return res.status(400).json({ error: error.message });
     }
-
   }
 
   async list(req: Request, res: Response) {
@@ -46,22 +30,37 @@ export class ClientController {
     const client = await service.getById(Number(req.params.id));
     if (!client) return res.status(404).json({ error: "Cliente não encontrado" });
     return res.json(client);
-
   }
 
   async getDocument(req: Request, res: Response) {
     const service = new GetClientByDocumentUseCase();
-    const documentNumber = Array.isArray(req.params.document) 
-      ? req.params.document[0] 
+    const documentNumber = Array.isArray(req.params.document)
+      ? req.params.document[0]
       : req.params.document;
-    
     const client = await service.getByDocument(documentNumber);
-    
-    if (!client) {
-      return res.status(404).json({ error: "Cliente não encontrado" });
-    }
-    
+    if (!client) return res.status(404).json({ error: "Cliente não encontrado" });
     return res.json(client);
   }
 
+  // ── Novos métodos ────────────────────────────────────────────────────────────
+
+  async update(req: Request, res: Response) {
+    try {
+      const service = new UpdateClientUseCase();
+      const client = await service.execute(Number(req.params.id), req.body);
+      return res.json({ success: true, data: client });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, error: error.message });
+    }
+  }
+
+  async delete(req: Request, res: Response) {
+    try {
+      const service = new DeleteClientUseCase();
+      const result = await service.execute(Number(req.params.id));
+      return res.json(result);
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  }
 }

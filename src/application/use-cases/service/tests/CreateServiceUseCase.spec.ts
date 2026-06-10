@@ -2,7 +2,7 @@ import { ServiceRepository } from "../../../../infrastructure/repositories/Servi
 import { CreateServiceUseCase } from "../CreateServiceUseCase";
 
 
-jest.mock("../../../infrastructure/repositories/ServiceRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ServiceRepository", () => ({
   ServiceRepository: {
     create: jest.fn(),
     save: jest.fn(),

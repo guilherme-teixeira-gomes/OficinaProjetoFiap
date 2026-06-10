@@ -7,13 +7,13 @@ import { ReserveStockUseCase } from "../../stock/ReserveStockUseCase";
 import { ApproveOrderUseCase } from "../ApproveServiceOrderUseCase";
 
 
-jest.mock("../../infrastructure/repositories/ServiceRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ServiceRepository", () => ({
   ServiceRepository: {
     findByIds: jest.fn(),
   }
 }));
 
-jest.mock("../../infrastructure/repositories/PartRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
   PartRepository: {
     findByIds: jest.fn(),
   }
@@ -26,10 +26,10 @@ jest.mock("../../../../infrastructure/repositories/ServiceOrderRepository", () =
   }
 }));
 
-jest.mock("../stock/CheckStockAvailabilityUseCase");
-jest.mock("../stock/ReserveStockUseCase");
-jest.mock("../stock/RestoreStockUseCase");
-jest.mock("../service-execution/CreateExecutionsFromApprovedOrderUseCase");
+jest.mock("../../stock/CheckStockAvailabilityUseCase");
+jest.mock("../../stock/ReserveStockUseCase");
+jest.mock("../../stock/RestoreStockUseCase");
+jest.mock("../../service-execution/CreateExecutionsFromApprovedOrderUseCase");
 
 describe("ApproveOrderUseCase", () => {
   let approveOrderUseCase: ApproveOrderUseCase;

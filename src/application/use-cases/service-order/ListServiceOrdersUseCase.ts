@@ -29,7 +29,8 @@ export class ListServiceOrdersUseCase {
       const orderA = statusOrder[a.status] || 99;
       const orderB = statusOrder[b.status] || 99;
       if (orderA !== orderB) return orderA - orderB;
-      return a.createdAt.getTime() - b.createdAt.getTime();
+      return (a.createdAt ? new Date(a.createdAt).getTime() : 0) - 
+       (b.createdAt ? new Date(b.createdAt).getTime() : 0);
     });
   
     return orders.map(order => ({
