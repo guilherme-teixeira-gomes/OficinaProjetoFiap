@@ -4,7 +4,7 @@ import { UnauthorizedError } from "../../../shared/helpers/api-errors";
 import { UserRepository } from "../../repositories/UserRepository";
 
 
-const JWT_SECRET = "supersecret"; 
+const JWT_SECRET = process.env.JWT_PASS!; 
 
 type JwtPayload = {
   id: number;

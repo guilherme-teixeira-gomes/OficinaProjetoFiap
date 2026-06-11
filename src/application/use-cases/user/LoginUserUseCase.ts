@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { UserRepository } from "../../../infrastructure/repositories/UserRepository";
 
 
-const JWT_SECRET = "supersecret";
+const JWT_SECRET = process.env.JWT_PASS!;
 
 export class LoginUserUseCase {
   
