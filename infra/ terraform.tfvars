@@ -1,0 +1,6 @@
+db_user     = "postgres"
+db_name     = "oficina"
+db_password = "postgres"
+jwt_secret  = "supersecret"
+smtp_user   = "oran94@ethereal.email"
+smtp_pass   = "YEdm6na527FACPxEyK"

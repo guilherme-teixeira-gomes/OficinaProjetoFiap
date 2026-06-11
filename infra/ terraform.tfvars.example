@@ -1,0 +1,11 @@
+# Copie este arquivo para terraform.tfvars e preencha com os valores reais
+# NUNCA commite o terraform.tfvars — ele está no .gitignore
+#
+# Os valores abaixo correspondem às mesmas variáveis do seu .env
+
+db_user     = "postgres"
+db_name     = "oficina"
+db_password = "postgres"                 # .env: DB_PASS
+jwt_secret  = "supersecret"              # .env: JWT_PASS
+smtp_user   = "oran94@ethereal.email"    # .env: SMTP_USER
+smtp_pass   = "YEdm6na527FACPxEyK"      # .env: SMTP_PASS

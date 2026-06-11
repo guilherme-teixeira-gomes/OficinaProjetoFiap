@@ -7,19 +7,24 @@ require("reflect-metadata");
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 require("express-async-errors");
-const data_source_1 = require("./data-source");
-const routes_1 = require("./routes/routes");
+const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
+const swagger_json_1 = __importDefault(require("../src/infrastructure/web/swagger/swagger.json"));
+const data_source_1 = require("./infrastructure/database/data-source");
+const routes_1 = require("./infrastructure/web/routes/routes");
 const app = (0, express_1.default)();
+const PORT = 3000;
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
+app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_json_1.default));
 app.use(routes_1.routes);
 app.get("/", (req, res) => {
     return res.json({ message: "API Oficina funcionando 🚗" });
 });
 data_source_1.AppDataSource.initialize()
     .then(() => {
-    app.listen(3000, () => {
-        console.log("Servidor rodando na porta 3000");
+    app.listen(PORT, () => {
+        console.log(`🚀 Servidor rodando na porta ${PORT}`);
+        console.log(`📚 Swagger disponível em http://localhost:${PORT}/api-docs`);
     });
 })
     .catch((error) => console.log(error));

@@ -1,0 +1,181 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, fasetwo ]
+  pull_request:
+    branches: [ main, fasetwo ]
+
+env:
+  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/oficina-api
+
+jobs:
+  # ─── 1. Testes e build ───────────────────────────────────────────────────────
+  test:
+    name: Testes e Build
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: oficina_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Executar testes unitários
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PASS: postgres
+          DB_NAME: oficina_test
+          JWT_PASS: test-secret
+        run: npx jest --testPathPatterns=spec
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Upload cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/lcov.info
+
+  # ─── 2. Análise de qualidade ─────────────────────────────────────────────────
+  sonarqube:
+    name: SonarQube
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download cobertura
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage
+          path: coverage
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # ─── 3. Build e push da imagem Docker ────────────────────────────────────────
+  docker-build:
+    name: Build e Push Docker
+    runs-on: ubuntu-latest
+    needs: [test, sonarqube]
+    if: github.event_name == 'push'
+    outputs:
+      image-tag: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login no Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build e push da imagem
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+  # ─── 4. Deploy no Kubernetes (Kind) ──────────────────────────────────────────
+  deploy:
+    name: Deploy Kubernetes
+    runs-on: ubuntu-latest
+    needs: docker-build
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Kind
+        run: |
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-amd64
+          chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/kind
+
+      - name: Criar cluster Kind
+        run: |
+          kind create cluster --name oficina --wait 60s
+          kubectl cluster-info --context kind-oficina
+
+      - name: Instalar metrics-server
+        run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+          kubectl patch deployment metrics-server -n kube-system \
+            --type=json \
+            -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+
+      - name: Carregar imagem no Kind
+        run: |
+          docker pull ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          kind load docker-image ${{ env.IMAGE_NAME }}:${{ github.sha }} --name oficina
+
+      - name: Criar secrets do Kubernetes
+        run: |
+          kubectl create secret generic oficina-secret \
+            --from-literal=DB_PASS="postgres" \
+            --from-literal=JWT_PASS="test-secret-ci" \
+            --from-literal=SMTP_USER="test@test.com" \
+            --from-literal=SMTP_PASS="test-pass"
+
+      - name: Aplicar manifestos do banco
+        run: |
+          kubectl apply -f k8s/configmap.yaml
+          kubectl apply -f k8s/postgres-pvc.yaml
+          kubectl apply -f k8s/postgres-deployment.yaml
+          kubectl apply -f k8s/postgres-service.yaml
+
+      - name: Aguardar banco subir
+        run: kubectl rollout status deployment/postgres --timeout=120s
+
+      - name: Aplicar manifestos da API
+        run: |
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
+          kubectl apply -f k8s/hpa.yaml
+
+      - name: Atualizar imagem da API
+        run: |
+          kubectl set image deployment/oficina-api \
+            api=${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Aguardar deploy da API
+        run: kubectl rollout status deployment/oficina-api --timeout=360s
+        continue-on-error: true
+
+      - name: Status dos pods
+        run: |
+          kubectl get pods
+          kubectl get services
+          kubectl get hpa

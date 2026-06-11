@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oficina-api
+  labels:
+    app: oficina-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oficina-api
+  template:
+    metadata:
+      labels:
+        app: oficina-api
+    spec:
+      containers:
+      - name: api
+        image: guitxgomes/oficina-api:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: oficina-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: oficina-config
+              key: DB_PORT
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: oficina-config
+              key: DB_USER
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: oficina-config
+              key: DB_NAME
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: oficina-secret
+              key: DB_PASS
+        - name: JWT_PASS
+          valueFrom:
+            secretKeyRef:
+              name: oficina-secret
+              key: JWT_PASS
+        - name: SMTP_HOST
+          value: "smtp.ethereal.email"
+        - name: SMTP_PORT
+          value: "587"
+        - name: SMTP_USER
+          valueFrom:
+            secretKeyRef:
+              name: oficina-secret
+              key: SMTP_USER
+        - name: SMTP_PASS
+          valueFrom:
+            secretKeyRef:
+              name: oficina-secret
+              key: SMTP_PASS
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        readinessProbe:
+          httpGet:
+            path: /api-docs
+            port: 3000
+          initialDelaySeconds: 40
+          periodSeconds: 10
+          failureThreshold: 10
+        livenessProbe:
+          httpGet:
+            path: /api-docs
+            port: 3000
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          failureThreshold: 5
