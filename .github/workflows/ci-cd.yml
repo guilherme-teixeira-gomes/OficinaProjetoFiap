@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, fasetwo ]
+    branches: [ main, master, fasetwo ]
   pull_request:
-    branches: [ main, fasetwo ]
+    branches: [ main, master, fasetwo ]
 
 env:
   IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/oficina-api
