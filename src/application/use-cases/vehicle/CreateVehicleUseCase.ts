@@ -1,6 +1,6 @@
-import { ClientRepository } from "../../../infrastructure/repositories/ClientRepository";
-import { VehicleRepository } from "../../../infrastructure/repositories/VehicleRepository";
-
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { Vehicle } from "../../../domain/entities/Vehicle";
+import { Client } from "../../../domain/entities/Client";
 
 interface CreateVehicleDTO {
   plate: string;
@@ -11,17 +11,18 @@ interface CreateVehicleDTO {
 }
 
 export class CreateVehicleUseCase {
-
   async execute(data: CreateVehicleDTO) {
-    const client = await ClientRepository.findOne({ where: { document: data.clientDocument } });
+    const vehicleRepo = AppDataSource.getRepository(Vehicle);
+    const clientRepo = AppDataSource.getRepository(Client);
+
+    const client = await clientRepo.findOne({ where: { document: data.clientDocument } });
     if (!client) throw new Error("Cliente não encontrado");
 
-    const exists = await VehicleRepository.findOne({ where: { plate: data.plate } });
+    const exists = await vehicleRepo.findOne({ where: { plate: data.plate } });
     if (exists) throw new Error("Veículo já cadastrado");
 
-    const vehicle = VehicleRepository.create({ ...data, client });
-    await VehicleRepository.save(vehicle);
+    const vehicle = vehicleRepo.create({ ...data, client });
+    await vehicleRepo.save(vehicle);
     return vehicle;
   }
-
 }

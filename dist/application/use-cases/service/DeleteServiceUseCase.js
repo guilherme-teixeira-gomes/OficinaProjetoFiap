@@ -1,17 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DeleteServiceUseCase = void 0;
-const ServiceRepository_1 = require("../../../infrastructure/repositories/ServiceRepository");
-const GetServiceByIdUseCase_1 = require("./GetServiceByIdUseCase");
+const data_source_1 = require("../../../infrastructure/database/data-source");
+const Service_1 = require("../../../domain/entities/Service");
 class DeleteServiceUseCase {
-    constructor() {
-        this.getServiceByIdUseCase = new GetServiceByIdUseCase_1.GetServiceByIdUseCase();
-    }
     async delete(id) {
-        const service = await this.getServiceByIdUseCase.getById(id);
+        const repo = data_source_1.AppDataSource.getRepository(Service_1.Service);
+        const service = await repo.findOne({ where: { id } });
         if (!service)
             throw new Error("Serviço não encontrado");
-        return ServiceRepository_1.ServiceRepository.remove(service);
+        return repo.remove(service);
     }
 }
 exports.DeleteServiceUseCase = DeleteServiceUseCase;

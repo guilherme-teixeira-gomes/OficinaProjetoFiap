@@ -1,9 +1,9 @@
-import { ClientRepository } from "../../../infrastructure/repositories/ClientRepository";
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { Client } from "../../../domain/entities/Client";
 
 export class ListClientsUseCase {
-
   async list() {
-    return ClientRepository.find({ relations: ["vehicles", "orders"] });
+    const repo = AppDataSource.getRepository(Client);
+    return repo.find({ relations: ["vehicles", "orders"] });
   }
-
 }

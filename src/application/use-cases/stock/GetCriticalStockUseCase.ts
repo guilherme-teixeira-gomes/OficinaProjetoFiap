@@ -1,11 +1,9 @@
-import { PartRepository } from "../../../infrastructure/repositories/PartRepository";
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { Part } from "../../../domain/entities/Part";
 
 export class GetCriticalStockUseCase {
   async execute() {
-    return PartRepository
-      .createQueryBuilder("part")
-      .where("part.stock <= part.minimumStock")
-      .orderBy("part.stock", "ASC")
-      .getMany();
+    const repo = AppDataSource.getRepository(Part);
+    return repo.createQueryBuilder("part").where("part.stock <= part.minimumStock").orderBy("part.stock", "ASC").getMany();
   }
 }

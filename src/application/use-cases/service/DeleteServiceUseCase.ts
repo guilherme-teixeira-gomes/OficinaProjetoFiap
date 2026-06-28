@@ -1,17 +1,11 @@
-import { ServiceRepository } from "../../../infrastructure/repositories/ServiceRepository";
-import { GetServiceByIdUseCase } from "./GetServiceByIdUseCase";
-
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { Service } from "../../../domain/entities/Service";
 
 export class DeleteServiceUseCase {
-  private getServiceByIdUseCase: GetServiceByIdUseCase;
-
-  constructor() {
-    this.getServiceByIdUseCase = new GetServiceByIdUseCase();
-  }
-
   async delete(id: number) {
-    const service = await this.getServiceByIdUseCase.getById(id);
+    const repo = AppDataSource.getRepository(Service);
+    const service = await repo.findOne({ where: { id } });
     if (!service) throw new Error("Serviço não encontrado");
-    return ServiceRepository.remove(service);
+    return repo.remove(service);
   }
 }

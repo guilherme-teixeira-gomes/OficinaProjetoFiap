@@ -1,26 +1,19 @@
-import { ServiceRepository } from "../../../infrastructure/repositories/ServiceRepository";
-import { GetServiceByIdUseCase } from "./GetServiceByIdUseCase";
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { Service } from "../../../domain/entities/Service";
 
 interface UpdateServiceDTO {
-  name: string;
+  name?: string;
   description?: string;
-  price: number;
+  price?: number;
   active?: boolean;
 }
 
 export class UpdateServiceUseCase {
-
-  private getServiceByIdUseCase: GetServiceByIdUseCase;
-
-  constructor() {
-    this.getServiceByIdUseCase = new GetServiceByIdUseCase();
-  }
   async update(id: number, data: Partial<UpdateServiceDTO>) {
-    const service = await this.getServiceByIdUseCase.getById(id);
+    const repo = AppDataSource.getRepository(Service);
+    const service = await repo.findOne({ where: { id } });
     if (!service) throw new Error("Serviço não encontrado");
-    ServiceRepository.merge(service, data);
-    return ServiceRepository.save(service);
+    repo.merge(service, data);
+    return repo.save(service);
   }
-
-
 }

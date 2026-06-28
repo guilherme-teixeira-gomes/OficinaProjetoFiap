@@ -5,12 +5,12 @@ const PartRepository_1 = require("../../../../infrastructure/repositories/PartRe
 const ServiceOrderRepository_1 = require("../../../../infrastructure/repositories/ServiceOrderRepository");
 const ServiceRepository_1 = require("../../../../infrastructure/repositories/ServiceRepository");
 const AddDiagnosticUseCase_1 = require("../AddDiagnosticUseCase");
-jest.mock("../../infrastructure/repositories/ServiceRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ServiceRepository", () => ({
     ServiceRepository: {
         findByIds: jest.fn(),
     }
 }));
-jest.mock("../../infrastructure/repositories/PartRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
     PartRepository: {
         findByIds: jest.fn(),
     }
@@ -20,7 +20,7 @@ jest.mock("../../../../infrastructure/repositories/ServiceOrderRepository", () =
         findOne: jest.fn(),
     }
 }));
-jest.mock("../../infrastructure/repositories/DiagnosticRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/DiagnosticRepository", () => ({
     DiagnosticRepository: {
         create: jest.fn(),
         save: jest.fn(),

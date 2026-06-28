@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const PartRepository_1 = require("../../../../infrastructure/repositories/PartRepository");
 const GetLowStockUseCase_1 = require("../GetLowStockUseCase");
-jest.mock("../../../infrastructure/repositories/PartRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
     PartRepository: {
         find: jest.fn(),
     }

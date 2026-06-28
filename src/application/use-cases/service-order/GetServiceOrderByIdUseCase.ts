@@ -1,21 +1,17 @@
-import { ServiceOrderRepository } from "../../../infrastructure/repositories/ServiceOrderRepository";
-
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { ServiceOrder } from "../../../domain/entities/ServiceOrder";
 
 export class GetServiceOrderByIdUseCase {
   async execute(id: number) {
-    const order = await ServiceOrderRepository.findOne({
+    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
+    const orderRepo = AppDataSource.getRepository(ServiceOrder);
+
+    const order = await orderRepo.findOne({
       where: { id },
       relations: [
-        "client",
-        "vehicle",
-        "services",
-        "parts",
-        "mechanic",
-        "diagnostics",
-        "diagnostics.recommendedServices",
-        "diagnostics.recommendedParts",
-        "executions",
-        "executions.service"
+        "client", "vehicle", "services", "parts", "mechanic",
+        "diagnostics", "diagnostics.recommendedServices", "diagnostics.recommendedParts",
+        "executions", "executions.service"
       ]
     });
   

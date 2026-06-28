@@ -1,8 +1,9 @@
-import { ClientRepository } from "../../../infrastructure/repositories/ClientRepository";
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { Client } from "../../../domain/entities/Client";
 
 export class GetClientByDocumentUseCase {
- 
   async getByDocument(document: string) {
-    return ClientRepository.findOne({ where: { document }, relations: ["vehicles", "orders"] });
+    const repo = AppDataSource.getRepository(Client);
+    return repo.findOne({ where: { document }, relations: ["vehicles", "orders"] });
   }
 }

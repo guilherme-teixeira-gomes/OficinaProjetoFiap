@@ -1,25 +1,17 @@
 import bcrypt from "bcrypt";
-
-import { UserRepository } from "../../../infrastructure/repositories/UserRepository";
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { User } from "../../../domain/entities/User";
 
 export class CreateUserUseCase {
   static async createUser(data: { name: string; email: string; password: string; role: string }) {
+    const repo = AppDataSource.getRepository(User);
     const { name, email, password, role } = data;
 
-    const existingUser = await UserRepository.findOne({ where: { email } });
-    if (existingUser) {
-      throw new Error("Usuário já existe");
-    }
+    const existingUser = await repo.findOne({ where: { email } });
+    if (existingUser) throw new Error("Usuário já existe");
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = UserRepository.create({
-      name,
-      email,
-      password: hashedPassword,
-      role,
-    });
-
-    return await UserRepository.save(user);
+    const user = repo.create({ name, email, password: hashedPassword, role });
+    return await repo.save(user);
   }
 }

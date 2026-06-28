@@ -37,6 +37,10 @@ __decorate([
     __metadata("design:type", Number)
 ], Vehicle.prototype, "year", void 0);
 __decorate([
+    (0, typeorm_1.DeleteDateColumn)({ nullable: true }),
+    __metadata("design:type", Date)
+], Vehicle.prototype, "deletedAt", void 0);
+__decorate([
     (0, typeorm_1.ManyToOne)(() => Client_1.Client, (client) => client.vehicles),
     __metadata("design:type", Client_1.Client)
 ], Vehicle.prototype, "client", void 0);

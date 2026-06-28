@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const StockMovementRepository_1 = require("../../../../infrastructure/repositories/StockMovementRepository");
 const GetStockMovementsUseCase_1 = require("../GetStockMovementsUseCase");
-jest.mock("../../../infrastructure/repositories/StockMovementRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/StockMovementRepository", () => ({
     StockMovementRepository: {
         createQueryBuilder: jest.fn(),
     }
@@ -91,6 +91,6 @@ describe("GetStockMovementsUseCase", () => {
             endDate,
             type: "OUT"
         });
-        expect(mockQueryBuilder.andWhere).toHaveBeenCalledTimes(4);
+        expect(mockQueryBuilder.andWhere).toHaveBeenCalledTimes(5);
     });
 });

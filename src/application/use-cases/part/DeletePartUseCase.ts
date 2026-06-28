@@ -1,16 +1,11 @@
-import { PartRepository } from "../../../infrastructure/repositories/PartRepository";
-import { GetPartByIdUseCase } from "./GetPartByIdUseCase";
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { Part } from "../../../domain/entities/Part";
 
 export class DeletePartUseCase {
-  private getPartByIdUseCase: GetPartByIdUseCase;
-
-  constructor() {
-    this.getPartByIdUseCase = new GetPartByIdUseCase();
-  }
-
   async delete(id: number) {
-    const part = await this.getPartByIdUseCase.getById(id);
+    const repo = AppDataSource.getRepository(Part);
+    const part = await repo.findOne({ where: { id } });
     if (!part) throw new Error("Peça não encontrada");
-    return PartRepository.remove(part);
+    return repo.remove(part);
   }
 }

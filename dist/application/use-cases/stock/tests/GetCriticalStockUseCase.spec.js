@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const PartRepository_1 = require("../../../../infrastructure/repositories/PartRepository");
 const GetCriticalStockUseCase_1 = require("../GetCriticalStockUseCase");
-jest.mock("../../../infrastructure/repositories/PartRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
     PartRepository: {
         createQueryBuilder: jest.fn(),
     }

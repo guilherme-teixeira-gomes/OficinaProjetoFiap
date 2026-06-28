@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateServiceOrderStatusUseCase = void 0;
-const ServiceOrderRepository_1 = require("../../../infrastructure/repositories/ServiceOrderRepository");
+const data_source_1 = require("../../../infrastructure/database/data-source");
+const ServiceOrder_1 = require("../../../domain/entities/ServiceOrder");
 class UpdateServiceOrderStatusUseCase {
     async execute(id, status) {
         const validStatus = [
@@ -11,11 +12,14 @@ class UpdateServiceOrderStatusUseCase {
         if (!validStatus.includes(status)) {
             throw new Error(`Status inválido. Use: ${validStatus.join(", ")}`);
         }
-        const order = await ServiceOrderRepository_1.ServiceOrderRepository.findOne({ where: { id } });
+        if (!data_source_1.AppDataSource.isInitialized)
+            await data_source_1.AppDataSource.initialize();
+        const orderRepo = data_source_1.AppDataSource.getRepository(ServiceOrder_1.ServiceOrder);
+        const order = await orderRepo.findOne({ where: { id } });
         if (!order)
             throw new Error("Ordem de serviço não encontrada");
         order.status = status;
-        return ServiceOrderRepository_1.ServiceOrderRepository.save(order);
+        return orderRepo.save(order);
     }
 }
 exports.UpdateServiceOrderStatusUseCase = UpdateServiceOrderStatusUseCase;

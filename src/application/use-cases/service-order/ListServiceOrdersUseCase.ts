@@ -1,15 +1,18 @@
-
 import { Not, In } from "typeorm";
-import { ServiceOrderRepository } from "../../../infrastructure/repositories/ServiceOrderRepository";
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { ServiceOrder } from "../../../domain/entities/ServiceOrder";
 
 export class ListServiceOrdersUseCase {
   async execute(excludeFinished: boolean = true) {
+    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
+    const orderRepo = AppDataSource.getRepository(ServiceOrder);
+
     let where: any = {};
     if (excludeFinished) {
       where.status = Not(In(["FINALIZADA", "ENTREGUE"]));
     }
     
-    const orders = await ServiceOrderRepository.find({
+    const orders = await orderRepo.find({
       where,
       relations: [
         "client", "vehicle", "services", "parts", "mechanic",

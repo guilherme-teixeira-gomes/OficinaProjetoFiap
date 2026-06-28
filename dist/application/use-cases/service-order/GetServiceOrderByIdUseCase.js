@@ -1,22 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GetServiceOrderByIdUseCase = void 0;
-const ServiceOrderRepository_1 = require("../../../infrastructure/repositories/ServiceOrderRepository");
+const data_source_1 = require("../../../infrastructure/database/data-source");
+const ServiceOrder_1 = require("../../../domain/entities/ServiceOrder");
 class GetServiceOrderByIdUseCase {
     async execute(id) {
-        const order = await ServiceOrderRepository_1.ServiceOrderRepository.findOne({
+        if (!data_source_1.AppDataSource.isInitialized)
+            await data_source_1.AppDataSource.initialize();
+        const orderRepo = data_source_1.AppDataSource.getRepository(ServiceOrder_1.ServiceOrder);
+        const order = await orderRepo.findOne({
             where: { id },
             relations: [
-                "client",
-                "vehicle",
-                "services",
-                "parts",
-                "mechanic",
-                "diagnostics",
-                "diagnostics.recommendedServices",
-                "diagnostics.recommendedParts",
-                "executions",
-                "executions.service"
+                "client", "vehicle", "services", "parts", "mechanic",
+                "diagnostics", "diagnostics.recommendedServices", "diagnostics.recommendedParts",
+                "executions", "executions.service"
             ]
         });
         if (!order)

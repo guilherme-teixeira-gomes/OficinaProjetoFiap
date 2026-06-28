@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const PartRepository_1 = require("../../../../infrastructure/repositories/PartRepository");
 const GetStockSummaryUseCase_1 = require("../GetStockSummaryUseCase");
-jest.mock("../../../infrastructure/repositories/PartRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
     PartRepository: {
         find: jest.fn(),
     }
@@ -34,7 +34,7 @@ describe("GetStockSummaryUseCase", () => {
         expect(result.partsByStock[2].status).toBe("CRÍTICO");
         // Peça D: estoque baixo (8 < 10, mas verifica minimumStock que é 15)
         // A lógica atual: stock <= minimumStock ? "CRÍTICO" : stock < 10 ? "BAIXO" : "NORMAL"
-        expect(result.partsByStock[3].status).toBe("BAIXO");
+        expect(result.partsByStock[3].status).toBe("CRÍTICO");
     });
     it("deve retornar resumo vazio quando não há peças", async () => {
         PartRepository_1.PartRepository.find.mockResolvedValue([]);

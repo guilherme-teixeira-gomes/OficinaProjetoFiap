@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const ServiceOrderRepository_1 = require("../../../../infrastructure/repositories/ServiceOrderRepository");
 const UserRepository_1 = require("../../../../infrastructure/repositories/UserRepository");
 const AcceptOrderUseCase_1 = require("../AcceptOrderUseCase");
-jest.mock("../../infrastructure/repositories/UserRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/UserRepository", () => ({
     UserRepository: {
         findOne: jest.fn(),
     }

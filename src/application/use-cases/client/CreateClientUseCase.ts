@@ -1,8 +1,5 @@
-import { ClientRepository } from "../../../infrastructure/repositories/ClientRepository";
-
-
-
-
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { Client } from "../../../domain/entities/Client";
 
 interface CreateClientDTO {
   name: string;
@@ -12,21 +9,14 @@ interface CreateClientDTO {
 }
 
 export class CreateClientUseCase {
-
   async execute(data: CreateClientDTO) {
+    const repo = AppDataSource.getRepository(Client);
 
-    const exists = await ClientRepository.findOne({
-      where: { document: data.document }
-    });
+    const exists = await repo.findOne({ where: { document: data.document } });
+    if (exists) throw new Error("Cliente já cadastrado");
 
-    if (exists) {
-      throw new Error("Cliente já cadastrado");
-    }
-
-    const client = ClientRepository.create(data);
-
-    await ClientRepository.save(client);
-
+    const client = repo.create(data);
+    await repo.save(client);
     return client;
   }
 }

@@ -1,22 +1,22 @@
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { ServiceOrder } from "../../../domain/entities/ServiceOrder";
 import { sendEmail, emailStatusAtualizado } from "../../../infrastructure/email/EmailService";
-
-import { ServiceOrderRepository } from "../../../infrastructure/repositories/ServiceOrderRepository";
-
 
 export class DeliverServiceOrderUseCase {
   async execute(id: number) {
-    const order = await ServiceOrderRepository.findOne({
+    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
+    const orderRepo = AppDataSource.getRepository(ServiceOrder);
+
+    const order = await orderRepo.findOne({
       where: { id },
       relations: ["client"]
     });
 
     if (!order) throw new Error("Ordem de serviço não encontrada");
-    if (order.status !== "FINALIZADA") {
-      throw new Error("Só é possível entregar OS finalizada");
-    }
+    if (order.status !== "FINALIZADA") throw new Error("Só é possível entregar OS finalizada");
 
     order.status = "ENTREGUE";
-    const saved = await ServiceOrderRepository.save(order);
+    const saved = await orderRepo.save(order);
 
     if (saved.client?.email) {
       const { subject, html } = emailStatusAtualizado(saved.client.name, saved.id, saved.status);

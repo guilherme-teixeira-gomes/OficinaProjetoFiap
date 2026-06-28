@@ -1,5 +1,5 @@
-import { ServiceRepository } from "../../../infrastructure/repositories/ServiceRepository";
-
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { Service } from "../../../domain/entities/Service";
 
 interface CreateServiceDTO {
   name: string;
@@ -10,8 +10,8 @@ interface CreateServiceDTO {
 
 export class CreateServiceUseCase {
   async create(data: CreateServiceDTO) {
-    const service = ServiceRepository.create(data);
-    return ServiceRepository.save(service);
+    const repo = AppDataSource.getRepository(Service);
+    const service = repo.create(data);
+    return repo.save(service);
   }
-
 }

@@ -1,7 +1,9 @@
-import { VehicleRepository } from "../../../infrastructure/repositories/VehicleRepository";
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { Vehicle } from "../../../domain/entities/Vehicle";
 
 export class ListVehiclesUseCase {
   async list() {
-    return VehicleRepository.find({ relations: ["client"] });
+    const repo = AppDataSource.getRepository(Vehicle);
+    return repo.find({ relations: ["client"] });
   }
 }

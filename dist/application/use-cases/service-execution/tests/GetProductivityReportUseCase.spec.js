@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const GetExecutionsByPeriodUseCase_1 = require("../GetExecutionsByPeriodUseCase");
 const GetProductivityReportUseCase_1 = require("../GetProductivityReportUseCase");
-jest.mock("./GetExecutionsByPeriodUseCase");
+jest.mock("../GetExecutionsByPeriodUseCase");
 describe("GetProductivityReportUseCase", () => {
     let getProductivityReportUseCase;
     let mockGetExecutionsByPeriod;

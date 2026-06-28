@@ -3,13 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const PartRepository_1 = require("../../../../infrastructure/repositories/PartRepository");
 const StockMovementRepository_1 = require("../../../../infrastructure/repositories/StockMovementRepository");
 const AddStockUseCase_1 = require("../AddStockUseCase");
-jest.mock("../../../infrastructure/repositories/PartRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
     PartRepository: {
         findOne: jest.fn(),
         save: jest.fn(),
     }
 }));
-jest.mock("../../../infrastructure/repositories/StockMovementRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/StockMovementRepository", () => ({
     StockMovementRepository: {
         create: jest.fn(),
         save: jest.fn(),

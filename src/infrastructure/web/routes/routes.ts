@@ -15,77 +15,71 @@ export const routes = Router();
 
 // ─── Rotas públicas ───────────────────────────────────────────────────────────
 
-// Criação de usuário e login
-routes.post("/user", new UserController().handle);
-routes.post("/user/login", new UserController().login);
+routes.post("/user", (req, res) => new UserController().handle(req, res));
+routes.post("/user/login", (req, res) => new UserController().login(req, res));
 
-// Busca de cliente por CPF/CNPJ (para o formulário de abertura de OS)
-routes.get("/clients/document/:document", new ClientController().getDocument);
+routes.get("/clients/document/:document", (req, res) => new ClientController().getDocument(req, res));
 
-// Consulta de OS por ID — pública para o cliente acompanhar sem login
-routes.get("/service-order/:id", new ServiceOrderController().get);
+routes.get("/service-order/:id", (req, res) => new ServiceOrderController().get(req, res));
+routes.get("/service-order/:id/status", (req, res) => new ServiceOrderController().getStatus(req, res));
 
-// Consulta de status da OS — pública para o cliente acompanhar
-routes.get("/service-order/:id/status", new ServiceOrderController().getStatus);
+routes.post("/service-order/:id/approve", (req, res) => new ServiceOrderController().approve(req, res));
+routes.post("/service-order/:id/reject", (req, res) => new ServiceOrderController().reject(req, res));
 
-// Aprovação/recusa de orçamento — notificação externa do cliente (sem login)
-routes.post("/service-order/:id/approve", new ServiceOrderController().approve);
-routes.post("/service-order/:id/reject", new ServiceOrderController().reject);
-
-// ─── Middleware de autenticação (tudo abaixo exige JWT) ───────────────────────
+// ─── Middleware de autenticação ───────────────────────────────────────────────
 routes.use(AuthMiddleware);
 
-// ─── Usuário ─────────────────────────────────────────────────────────────────
-routes.post("/user/logout", new UserController().logout);
+// ─── Usuário ──────────────────────────────────────────────────────────────────
+routes.post("/user/logout", (req, res) => new UserController().logout(req, res));
 
-// ─── Clientes ────────────────────────────────────────────────────────────────
-routes.post("/clients", createClientValidation, new ClientController().handle);
-routes.get("/clients", new ClientController().list);
-routes.get("/clients/:id", new ClientController().get);
-routes.put("/clients/:id", new ClientController().update);
-routes.delete("/clients/:id", new ClientController().delete);
+// ─── Clientes ─────────────────────────────────────────────────────────────────
+routes.post("/clients", createClientValidation, (req, res) => new ClientController().handle(req, res));
+routes.get("/clients", (req, res) => new ClientController().list(req, res));
+routes.get("/clients/:id", (req, res) => new ClientController().get(req, res));
+routes.put("/clients/:id", (req, res) => new ClientController().update(req, res));
+routes.delete("/clients/:id", (req, res) => new ClientController().delete(req, res));
 
-// ─── Estoque ─────────────────────────────────────────────────────────────────
-routes.get("/stock/low", new StockController().getLowStock);
-routes.get("/stock/critical", new StockController().getCriticalStock);
-routes.get("/stock/movements", new StockController().getMovements);
-routes.get("/stock/summary", new StockController().getStockSummary);
-routes.post("/stock/add", new StockController().addStock);
-routes.get("/stock/check/:partId/:quantity", new StockController().checkAvailability);
+// ─── Estoque ──────────────────────────────────────────────────────────────────
+routes.get("/stock/low", (req, res) => new StockController().getLowStock(req, res));
+routes.get("/stock/critical", (req, res) => new StockController().getCriticalStock(req, res));
+routes.get("/stock/movements", (req, res) => new StockController().getMovements(req, res));
+routes.get("/stock/summary", (req, res) => new StockController().getStockSummary(req, res));
+routes.post("/stock/add", (req, res) => new StockController().addStock(req, res));
+routes.get("/stock/check/:partId/:quantity", (req, res) => new StockController().checkAvailability(req, res));
 
 // ─── Ordens de serviço ────────────────────────────────────────────────────────
-routes.post("/service-order", new ServiceOrderController().handle);
-routes.get("/service-order", new ServiceOrderController().list);
-routes.post("/service-order/:id/accept", new ServiceOrderController().acceptOrder);
-routes.post("/service-order/:id/diagnostic", new ServiceOrderController().addDiagnostic);
-routes.post("/service-order/:id/finish-diagnostic", new ServiceOrderController().finishDiagnostic);
-routes.post("/service-order/:id/finish", new ServiceOrderController().finish);
-routes.post("/service-order/:id/deliver", new ServiceOrderController().deliver);
+routes.post("/service-order", (req, res) => new ServiceOrderController().handle(req, res));
+routes.get("/service-order", (req, res) => new ServiceOrderController().list(req, res));
+routes.post("/service-order/:id/accept", (req, res) => new ServiceOrderController().acceptOrder(req, res));
+routes.post("/service-order/:id/diagnostic", (req, res) => new ServiceOrderController().addDiagnostic(req, res));
+routes.post("/service-order/:id/finish-diagnostic", (req, res) => new ServiceOrderController().finishDiagnostic(req, res));
+routes.post("/service-order/:id/finish", (req, res) => new ServiceOrderController().finish(req, res));
+routes.post("/service-order/:id/deliver", (req, res) => new ServiceOrderController().deliver(req, res));
 
 // ─── Execuções de serviço ─────────────────────────────────────────────────────
-routes.post("/service-executions/start", new ServiceExecutionController().startService);
-routes.post("/service-executions/finish", new ServiceExecutionController().finishService);
-routes.get("/service-executions/average/:serviceId", new ServiceExecutionController().getAverageByService);
-routes.get("/service-executions/averages", new ServiceExecutionController().getAllAverages);
-routes.get("/service-executions/timeline/:serviceOrderId", new ServiceExecutionController().getTimeline);
+routes.post("/service-executions/start", (req, res) => new ServiceExecutionController().startService(req, res));
+routes.post("/service-executions/finish", (req, res) => new ServiceExecutionController().finishService(req, res));
+routes.get("/service-executions/average/:serviceId", (req, res) => new ServiceExecutionController().getAverageByService(req, res));
+routes.get("/service-executions/averages", (req, res) => new ServiceExecutionController().getAllAverages(req, res));
+routes.get("/service-executions/timeline/:serviceOrderId", (req, res) => new ServiceExecutionController().getTimeline(req, res));
 
 // ─── Veículos ─────────────────────────────────────────────────────────────────
-routes.post("/vehicles", createVehicleValidation, new VehicleController().handle);
-routes.get("/vehicles", new VehicleController().list);
-routes.get("/vehicles/:id", new VehicleController().get);
-routes.put("/vehicles/:id", new VehicleController().update);
-routes.delete("/vehicles/:id", new VehicleController().delete);
+routes.post("/vehicles", createVehicleValidation, (req, res) => new VehicleController().handle(req, res));
+routes.get("/vehicles", (req, res) => new VehicleController().list(req, res));
+routes.get("/vehicles/:id", (req, res) => new VehicleController().get(req, res));
+routes.put("/vehicles/:id", (req, res) => new VehicleController().update(req, res));
+routes.delete("/vehicles/:id", (req, res) => new VehicleController().delete(req, res));
 
 // ─── Peças ────────────────────────────────────────────────────────────────────
-routes.post("/parts", new PartController().handle);
-routes.get("/parts", new PartController().list);
-routes.get("/parts/:id", new PartController().get);
-routes.put("/parts/:id", new PartController().update);
-routes.delete("/parts/:id", new PartController().delete);
+routes.post("/parts", (req, res) => new PartController().handle(req, res));
+routes.get("/parts", (req, res) => new PartController().list(req, res));
+routes.get("/parts/:id", (req, res) => new PartController().get(req, res));
+routes.put("/parts/:id", (req, res) => new PartController().update(req, res));
+routes.delete("/parts/:id", (req, res) => new PartController().delete(req, res));
 
 // ─── Serviços ─────────────────────────────────────────────────────────────────
-routes.post("/services", new ServiceController().handle);
-routes.get("/services", new ServiceController().list);
-routes.get("/services/:id", new ServiceController().get);
-routes.put("/services/:id", new ServiceController().update);
-routes.delete("/services/:id", new ServiceController().delete);
+routes.post("/services", (req, res) => new ServiceController().handle(req, res));
+routes.get("/services", (req, res) => new ServiceController().list(req, res));
+routes.get("/services/:id", (req, res) => new ServiceController().get(req, res));
+routes.put("/services/:id", (req, res) => new ServiceController().update(req, res));
+routes.delete("/services/:id", (req, res) => new ServiceController().delete(req, res));

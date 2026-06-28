@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const VehicleRepository_1 = require("../../../../infrastructure/repositories/VehicleRepository");
 const GetVehicleByIdUseCase_1 = require("../GetVehicleByIdUseCase");
-jest.mock("../../../infrastructure/repositories/VehicleRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/VehicleRepository", () => ({
     VehicleRepository: {
         findOne: jest.fn(),
     }

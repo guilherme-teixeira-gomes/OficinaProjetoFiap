@@ -1,29 +1,20 @@
-import { PartRepository } from "../../../infrastructure/repositories/PartRepository";
-import { GetPartByIdUseCase } from "./GetPartByIdUseCase";
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { Part } from "../../../domain/entities/Part";
 
 interface UpdatePartDTO {
-  name: string;
+  name?: string;
   description?: string;
-  price: number;
+  price?: number;
   stock?: number;
   minimumStock?: number;
 }
 
 export class UpdatePartUseCase {
-
-  private getPartByIdUseCase: GetPartByIdUseCase;
-
-  constructor() {
-    this.getPartByIdUseCase = new GetPartByIdUseCase();
-  }
-
   async update(id: number, data: Partial<UpdatePartDTO>) {
-    const part = await this.getPartByIdUseCase.getById(id);
-
+    const repo = AppDataSource.getRepository(Part);
+    const part = await repo.findOne({ where: { id } });
     if (!part) throw new Error("Peça não encontrada");
-
-    PartRepository.merge(part, data);
-    return PartRepository.save(part);
+    repo.merge(part, data);
+    return repo.save(part);
   }
-
 }

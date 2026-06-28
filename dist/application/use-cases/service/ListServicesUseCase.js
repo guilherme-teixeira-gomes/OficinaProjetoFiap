@@ -1,10 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ListServicesUseCase = void 0;
-const ServiceRepository_1 = require("../../../infrastructure/repositories/ServiceRepository");
+const data_source_1 = require("../../../infrastructure/database/data-source");
+const Service_1 = require("../../../domain/entities/Service");
 class ListServicesUseCase {
     async list() {
-        return ServiceRepository_1.ServiceRepository.find();
+        const repo = data_source_1.AppDataSource.getRepository(Service_1.Service);
+        return repo.find();
     }
 }
 exports.ListServicesUseCase = ListServicesUseCase;

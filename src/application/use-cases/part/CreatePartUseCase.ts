@@ -1,5 +1,5 @@
-import { PartRepository } from "../../../infrastructure/repositories/PartRepository";
-
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { Part } from "../../../domain/entities/Part";
 
 interface CreatePartDTO {
   name: string;
@@ -11,7 +11,8 @@ interface CreatePartDTO {
 
 export class CreatePartUseCase {
   async create(data: CreatePartDTO) {
-    const part = PartRepository.create(data);
-    return PartRepository.save(part);
+    const repo = AppDataSource.getRepository(Part);
+    const part = repo.create(data);
+    return repo.save(part);
   }
 }

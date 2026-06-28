@@ -3,12 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const ClientRepository_1 = require("../../../../infrastructure/repositories/ClientRepository");
 const VehicleRepository_1 = require("../../../../infrastructure/repositories/VehicleRepository");
 const CreateVehicleUseCase_1 = require("../CreateVehicleUseCase");
-jest.mock("../../../infrastructure/repositories/ClientRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ClientRepository", () => ({
     ClientRepository: {
         findOne: jest.fn(),
     }
 }));
-jest.mock("../../../infrastructure/repositories/VehicleRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/VehicleRepository", () => ({
     VehicleRepository: {
         findOne: jest.fn(),
         create: jest.fn(),

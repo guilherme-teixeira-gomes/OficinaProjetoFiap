@@ -5,22 +5,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateUserUseCase = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
-const UserRepository_1 = require("../../../infrastructure/repositories/UserRepository");
+const data_source_1 = require("../../../infrastructure/database/data-source");
+const User_1 = require("../../../domain/entities/User");
 class CreateUserUseCase {
     static async createUser(data) {
+        const repo = data_source_1.AppDataSource.getRepository(User_1.User);
         const { name, email, password, role } = data;
-        const existingUser = await UserRepository_1.UserRepository.findOne({ where: { email } });
-        if (existingUser) {
+        const existingUser = await repo.findOne({ where: { email } });
+        if (existingUser)
             throw new Error("Usuário já existe");
-        }
         const hashedPassword = await bcrypt_1.default.hash(password, 10);
-        const user = UserRepository_1.UserRepository.create({
-            name,
-            email,
-            password: hashedPassword,
-            role,
-        });
-        return await UserRepository_1.UserRepository.save(user);
+        const user = repo.create({ name, email, password: hashedPassword, role });
+        return await repo.save(user);
     }
 }
 exports.CreateUserUseCase = CreateUserUseCase;

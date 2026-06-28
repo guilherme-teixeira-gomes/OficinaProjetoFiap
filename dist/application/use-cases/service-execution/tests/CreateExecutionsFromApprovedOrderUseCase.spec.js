@@ -3,12 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const ServiceExecutionRepository_1 = require("../../../../infrastructure/repositories/ServiceExecutionRepository");
 const ServiceOrderRepository_1 = require("../../../../infrastructure/repositories/ServiceOrderRepository");
 const CreateExecutionsFromApprovedOrderUseCase_1 = require("../CreateExecutionsFromApprovedOrderUseCase");
-jest.mock("../../../infrastructure/repositories/ServiceOrderRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ServiceOrderRepository", () => ({
     ServiceOrderRepository: {
         findOne: jest.fn(),
     }
 }));
-jest.mock("../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
     ServiceExecutionRepository: {
         findOne: jest.fn(),
         save: jest.fn(),

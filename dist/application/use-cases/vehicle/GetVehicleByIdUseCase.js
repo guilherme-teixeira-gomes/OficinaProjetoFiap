@@ -1,10 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GetVehicleByIdUseCase = void 0;
-const VehicleRepository_1 = require("../../../infrastructure/repositories/VehicleRepository");
+const data_source_1 = require("../../../infrastructure/database/data-source");
+const Vehicle_1 = require("../../../domain/entities/Vehicle");
 class GetVehicleByIdUseCase {
     async getById(id) {
-        return VehicleRepository_1.VehicleRepository.findOne({ where: { id }, relations: ["client"] });
+        const repo = data_source_1.AppDataSource.getRepository(Vehicle_1.Vehicle);
+        return repo.findOne({ where: { id }, relations: ["client"] });
     }
 }
 exports.GetVehicleByIdUseCase = GetVehicleByIdUseCase;

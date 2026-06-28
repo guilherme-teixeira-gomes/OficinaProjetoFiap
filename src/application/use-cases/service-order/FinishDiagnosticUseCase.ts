@@ -1,11 +1,14 @@
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { ServiceOrder } from "../../../domain/entities/ServiceOrder";
 import { sendEmail, emailOrcamentoDisponivel } from "../../../infrastructure/email/EmailService";
-import { ServiceOrderRepository } from "../../../infrastructure/repositories/ServiceOrderRepository";
 import { calculateBudgetFromDiagnostics, calculateDiagnosticTotal } from "../../../shared/helpers/helpers";
-
 
 export class FinishDiagnosticUseCase {
   async execute(orderId: number) {
-    const order = await ServiceOrderRepository.findOne({ 
+    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
+    const orderRepo = AppDataSource.getRepository(ServiceOrder);
+
+    const order = await orderRepo.findOne({ 
       where: { id: orderId },
       relations: [
         "client",
@@ -16,25 +19,19 @@ export class FinishDiagnosticUseCase {
     });
     
     if (!order) throw new Error("Ordem de serviço não encontrada");
-    if (order.status !== "EM_DIAGNOSTICO") {
-      throw new Error("Ordem de serviço não está em diagnóstico");
-    }
+    if (order.status !== "EM_DIAGNOSTICO") throw new Error("Ordem de serviço não está em diagnóstico");
     
-    const budget = await calculateBudgetFromDiagnostics(order); 
+    const budget = await calculateBudgetFromDiagnostics(order);
     
     order.status = "AGUARDANDO_APROVACAO";
     order.budget = budget;
     
-    await ServiceOrderRepository.save(order);
+    await orderRepo.save(order);
 
-    // Envia email ao cliente com link de aprovação/recusa
     if (order.client?.email) {
       const appUrl = process.env.APP_URL ?? "http://localhost:3000";
       const { subject, html } = emailOrcamentoDisponivel(
-        order.client.name,
-        order.id,
-        order.budget,
-        appUrl
+        order.client.name, order.id, order.budget, appUrl
       );
       await sendEmail({ to: order.client.email, subject, html }).catch((err) => {
         console.error("Falha ao enviar email de orçamento:", err.message);
@@ -51,7 +48,7 @@ export class FinishDiagnosticUseCase {
         mechanicNote: d.mechanicNote,
         services: d.recommendedServices,
         parts: d.recommendedParts,
-        total: calculateDiagnosticTotal(d) 
+        total: calculateDiagnosticTotal(d)
       })) || [];
     
     const optionalItems = order.diagnostics
@@ -64,7 +61,7 @@ export class FinishDiagnosticUseCase {
         mechanicNote: d.mechanicNote,
         services: d.recommendedServices,
         parts: d.recommendedParts,
-        total: calculateDiagnosticTotal(d) 
+        total: calculateDiagnosticTotal(d)
       })) || [];
     
     return {

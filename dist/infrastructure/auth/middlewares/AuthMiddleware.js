@@ -7,7 +7,7 @@ exports.AuthMiddleware = AuthMiddleware;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const api_errors_1 = require("../../../shared/helpers/api-errors");
 const UserRepository_1 = require("../../repositories/UserRepository");
-const JWT_SECRET = "supersecret";
+const JWT_SECRET = process.env.JWT_PASS;
 async function AuthMiddleware(req, res, next) {
     if (req.path === "/user/login" || req.path === "/user" || req.path.startsWith("/public")) {
         return next();

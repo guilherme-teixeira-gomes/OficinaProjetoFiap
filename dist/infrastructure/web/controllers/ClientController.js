@@ -5,23 +5,18 @@ const CreateClientUseCase_1 = require("../../../application/use-cases/client/Cre
 const ListClientsUseCase_1 = require("../../../application/use-cases/client/ListClientsUseCase");
 const GetClientByIdUseCase_1 = require("../../../application/use-cases/client/GetClientByIdUseCase");
 const GetClientByDocumentUseCase_1 = require("../../../application/use-cases/client/GetClientByDocumentUseCase");
+const UpdateClientUseCase_1 = require("../../../application/use-cases/client/UpdateClientUseCase");
+const DeleteClientUseCase_1 = require("../../../application/use-cases/client/DeleteClientUseCase");
 class ClientController {
     async handle(req, res) {
         try {
             const service = new CreateClientUseCase_1.CreateClientUseCase();
             const { name, document, email, phone } = req.body;
-            const client = await service.execute({
-                name,
-                document,
-                email,
-                phone
-            });
+            const client = await service.execute({ name, document, email, phone });
             return res.status(201).json(client);
         }
         catch (error) {
-            return res.status(400).json({
-                error: error.message
-            });
+            return res.status(400).json({ error: error.message });
         }
     }
     async list(req, res) {
@@ -42,10 +37,30 @@ class ClientController {
             ? req.params.document[0]
             : req.params.document;
         const client = await service.getByDocument(documentNumber);
-        if (!client) {
+        if (!client)
             return res.status(404).json({ error: "Cliente não encontrado" });
-        }
         return res.json(client);
+    }
+    // ── Novos métodos ────────────────────────────────────────────────────────────
+    async update(req, res) {
+        try {
+            const service = new UpdateClientUseCase_1.UpdateClientUseCase();
+            const client = await service.execute(Number(req.params.id), req.body);
+            return res.json({ success: true, data: client });
+        }
+        catch (error) {
+            return res.status(400).json({ success: false, error: error.message });
+        }
+    }
+    async delete(req, res) {
+        try {
+            const service = new DeleteClientUseCase_1.DeleteClientUseCase();
+            const result = await service.execute(Number(req.params.id));
+            return res.json(result);
+        }
+        catch (error) {
+            return res.status(400).json({ error: error.message });
+        }
     }
 }
 exports.ClientController = ClientController;

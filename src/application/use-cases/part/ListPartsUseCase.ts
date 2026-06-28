@@ -1,8 +1,9 @@
-import { PartRepository } from "../../../infrastructure/repositories/PartRepository";
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { Part } from "../../../domain/entities/Part";
 
 export class ListPartsUseCase {
-
   async list() {
-    return PartRepository.find();
+    const repo = AppDataSource.getRepository(Part);
+    return repo.find();
   }
 }

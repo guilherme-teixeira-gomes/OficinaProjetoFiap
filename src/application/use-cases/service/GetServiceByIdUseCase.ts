@@ -1,10 +1,9 @@
-import { ServiceRepository } from "../../../infrastructure/repositories/ServiceRepository";
-
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { Service } from "../../../domain/entities/Service";
 
 export class GetServiceByIdUseCase {
-
   async getById(id: number) {
-    return ServiceRepository.findOne({ where: { id } });
+    const repo = AppDataSource.getRepository(Service);
+    return repo.findOne({ where: { id } });
   }
-
 }

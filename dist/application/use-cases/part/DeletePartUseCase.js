@@ -1,17 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DeletePartUseCase = void 0;
-const PartRepository_1 = require("../../../infrastructure/repositories/PartRepository");
-const GetPartByIdUseCase_1 = require("./GetPartByIdUseCase");
+const data_source_1 = require("../../../infrastructure/database/data-source");
+const Part_1 = require("../../../domain/entities/Part");
 class DeletePartUseCase {
-    constructor() {
-        this.getPartByIdUseCase = new GetPartByIdUseCase_1.GetPartByIdUseCase();
-    }
     async delete(id) {
-        const part = await this.getPartByIdUseCase.getById(id);
+        const repo = data_source_1.AppDataSource.getRepository(Part_1.Part);
+        const part = await repo.findOne({ where: { id } });
         if (!part)
             throw new Error("Peça não encontrada");
-        return PartRepository_1.PartRepository.remove(part);
+        return repo.remove(part);
     }
 }
 exports.DeletePartUseCase = DeletePartUseCase;

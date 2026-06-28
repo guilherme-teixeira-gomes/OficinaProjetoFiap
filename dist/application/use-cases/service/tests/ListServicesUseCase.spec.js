@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const ServiceRepository_1 = require("../../../../infrastructure/repositories/ServiceRepository");
 const ListServicesUseCase_1 = require("../ListServicesUseCase");
-jest.mock("../../../infrastructure/repositories/ServiceRepository", () => ({
+jest.mock("../../../../infrastructure/repositories/ServiceRepository", () => ({
     ServiceRepository: {
         find: jest.fn(),
     }

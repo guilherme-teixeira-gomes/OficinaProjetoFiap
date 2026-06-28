@@ -1,13 +1,19 @@
-import { DiagnosticRepository } from "../../../infrastructure/repositories/DiagnosticRepository";
-import { PartRepository } from "../../../infrastructure/repositories/PartRepository";
-import { ServiceOrderRepository } from "../../../infrastructure/repositories/ServiceOrderRepository";
-import { ServiceRepository } from "../../../infrastructure/repositories/ServiceRepository";
+import { AppDataSource } from "../../../infrastructure/database/data-source";
+import { ServiceOrder } from "../../../domain/entities/ServiceOrder";
+import { Diagnostic } from "../../../domain/entities/Diagnostic";
+import { Service } from "../../../domain/entities/Service";
+import { Part } from "../../../domain/entities/Part";
 import { AddDiagnosticDTO } from "../../../shared/types/service-order.types";
-
 
 export class AddDiagnosticUseCase {
   async execute(orderId: number, diagnosticData: AddDiagnosticDTO) {
-    const order = await ServiceOrderRepository.findOne({ 
+    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
+    const orderRepo = AppDataSource.getRepository(ServiceOrder);
+    const diagnosticRepo = AppDataSource.getRepository(Diagnostic);
+    const serviceRepo = AppDataSource.getRepository(Service);
+    const partRepo = AppDataSource.getRepository(Part);
+
+    const order = await orderRepo.findOne({ 
       where: { id: orderId },
       relations: ["diagnostics"]
     });
@@ -18,24 +24,24 @@ export class AddDiagnosticUseCase {
     }
     
     const recommendedServices = diagnosticData.serviceIds?.length 
-      ? await ServiceRepository.findByIds(diagnosticData.serviceIds)
+      ? await serviceRepo.findByIds(diagnosticData.serviceIds)
       : [];
       
     const recommendedParts = diagnosticData.partIds?.length
-      ? await PartRepository.findByIds(diagnosticData.partIds)
+      ? await partRepo.findByIds(diagnosticData.partIds)
       : [];
     
-    const diagnostic = DiagnosticRepository.create({
+    const diagnostic = diagnosticRepo.create({
       title: diagnosticData.title,
       description: diagnosticData.description,
       includeInBudget: diagnosticData.includeInBudget,
-      priority: diagnosticData.priority || "media", 
-      mechanicNote: diagnosticData.mechanicNote,    
+      priority: diagnosticData.priority || "media",
+      mechanicNote: diagnosticData.mechanicNote,
       recommendedServices,
       recommendedParts,
       serviceOrder: order
     });
     
-    return await DiagnosticRepository.save(diagnostic);
+    return await diagnosticRepo.save(diagnostic);
   }
 }
