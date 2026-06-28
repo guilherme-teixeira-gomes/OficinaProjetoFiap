@@ -3,7 +3,6 @@ import { ServiceOrder } from "../../../domain/entities/ServiceOrder";
 
 export class GetServiceOrderByIdUseCase {
   async execute(id: number) {
-    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
     const orderRepo = AppDataSource.getRepository(ServiceOrder);
 
     const order = await orderRepo.findOne({

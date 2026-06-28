@@ -1,62 +1,40 @@
-import { ServiceRepository } from "../../../../infrastructure/repositories/ServiceRepository";
 import { UpdateServiceUseCase } from "../UpdateServiceUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-jest.mock("../../../../infrastructure/repositories/ServiceRepository", () => ({
-  ServiceRepository: {
-    findOne: jest.fn(),
-    merge: jest.fn(),
-    save: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("UpdateServiceUseCase", () => {
-  let updateServiceUseCase: UpdateServiceUseCase;
+  let useCase: UpdateServiceUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    updateServiceUseCase = new UpdateServiceUseCase();
+    mockRepo = { findOne: jest.fn(), merge: jest.fn(), save: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new UpdateServiceUseCase();
   });
 
   it("deve atualizar serviço com sucesso", async () => {
-    const existingService = { id: 1, name: "Troca de óleo", price: 100 };
-    const updatedService = { ...existingService, price: 120 };
+    const mockService = { id: 1, name: "Troca de óleo", price: 150 };
+    mockRepo.findOne.mockResolvedValue(mockService);
+    mockRepo.save.mockResolvedValue({ ...mockService, price: 200 });
 
-    (ServiceRepository.findOne as jest.Mock).mockResolvedValue(existingService);
-    (ServiceRepository.merge as jest.Mock).mockReturnValue(updatedService);
-    (ServiceRepository.save as jest.Mock).mockResolvedValue(updatedService);
-
-    const result = await updateServiceUseCase.update(1, { price: 120 });
-
-    expect(result.price).toBe(120);
-    expect(ServiceRepository.merge).toHaveBeenCalledWith(existingService, { price: 120 });
+    await useCase.update(1, { price: 200 });
+    expect(mockRepo.merge).toHaveBeenCalledWith(mockService, { price: 200 });
   });
 
   it("deve atualizar múltiplos campos", async () => {
-    const existingService = { id: 1, name: "Troca de óleo", price: 100, active: true };
-    const updatedService = {
-      ...existingService,
-      name: "Troca de óleo sintético",
-      price: 150
-    };
+    const mockService = { id: 1, name: "Troca de óleo", price: 150, active: true };
+    mockRepo.findOne.mockResolvedValue(mockService);
+    mockRepo.save.mockResolvedValue({ ...mockService, price: 200, active: false });
 
-    (ServiceRepository.findOne as jest.Mock).mockResolvedValue(existingService);
-    (ServiceRepository.merge as jest.Mock).mockReturnValue(updatedService);
-    (ServiceRepository.save as jest.Mock).mockResolvedValue(updatedService);
-
-    const result = await updateServiceUseCase.update(1, {
-      name: "Troca de óleo sintético",
-      price: 150
-    });
-
-    expect(result.name).toBe("Troca de óleo sintético");
-    expect(result.price).toBe(150);
+    await useCase.update(1, { price: 200, active: false });
+    expect(mockRepo.merge).toHaveBeenCalledWith(mockService, { price: 200, active: false });
   });
 
   it("deve lançar erro ao atualizar serviço inexistente", async () => {
-    (ServiceRepository.findOne as jest.Mock).mockResolvedValue(null);
-
-    await expect(
-      updateServiceUseCase.update(999, { price: 120 })
-    ).rejects.toThrow("Serviço não encontrado");
+    mockRepo.findOne.mockResolvedValue(null);
+    await expect(useCase.update(999, { price: 200 })).rejects.toThrow("Serviço não encontrado");
   });
 });

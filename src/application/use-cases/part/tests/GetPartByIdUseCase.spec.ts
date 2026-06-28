@@ -1,36 +1,29 @@
-import { PartRepository } from "../../../../infrastructure/repositories/PartRepository";
 import { GetPartByIdUseCase } from "../GetPartByIdUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
-  PartRepository: {
-    findOne: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("GetPartByIdUseCase", () => {
-  let getPartByIdUseCase: GetPartByIdUseCase;
+  let useCase: GetPartByIdUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    getPartByIdUseCase = new GetPartByIdUseCase();
+    mockRepo = { findOne: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new GetPartByIdUseCase();
   });
 
   it("deve buscar peça por id", async () => {
-    const mockPart = { id: 1, name: "Filtro", price: 50 };
-
-    (PartRepository.findOne as jest.Mock).mockResolvedValue(mockPart);
-
-    const result = await getPartByIdUseCase.getById(1);
-
+    mockRepo.findOne.mockResolvedValue({ id: 1, name: "Filtro" });
+    const result = await useCase.getById(1);
     expect(result).toHaveProperty("id", 1);
   });
 
   it("deve retornar null se peça não existir", async () => {
-    (PartRepository.findOne as jest.Mock).mockResolvedValue(null);
-
-    const result = await getPartByIdUseCase.getById(999);
-
+    mockRepo.findOne.mockResolvedValue(null);
+    const result = await useCase.getById(999);
     expect(result).toBeNull();
   });
 });

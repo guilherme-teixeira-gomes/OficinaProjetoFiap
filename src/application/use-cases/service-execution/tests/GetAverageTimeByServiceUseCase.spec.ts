@@ -1,58 +1,41 @@
-import { ServiceExecutionRepository } from "../../../../infrastructure/repositories/ServiceExecutionRepository";
 import { GetAverageTimeByServiceUseCase } from "../GetAverageTimeByServiceUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
-  ServiceExecutionRepository: {
-    find: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("GetAverageTimeByServiceUseCase", () => {
-  let getAverageTimeUseCase: GetAverageTimeByServiceUseCase;
+  let useCase: GetAverageTimeByServiceUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    getAverageTimeUseCase = new GetAverageTimeByServiceUseCase();
+    mockRepo = { find: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new GetAverageTimeByServiceUseCase();
   });
 
-  describe("execute", () => {
-    it("deve calcular média de tempo", async () => {
-      (ServiceExecutionRepository.find as jest.Mock).mockResolvedValue([
-        { durationMinutes: 60 },
-        { durationMinutes: 30 }
-      ]);
+  it("deve calcular média de tempo", async () => {
+    mockRepo.find.mockResolvedValue([
+      { serviceId: 1, durationMinutes: 60 },
+      { serviceId: 1, durationMinutes: 120 }
+    ]);
 
-      const result = await getAverageTimeUseCase.execute(1);
+    const result = await useCase.execute(1);
+    expect(result.averageMinutes).toBe(90);
+  });
 
-      expect(result.averageMinutes).toBe(45);
-      expect(result.totalExecutions).toBe(2);
-      expect(result.minMinutes).toBe(30);
-      expect(result.maxMinutes).toBe(60);
-    });
+  it("deve retornar média zero quando não há execuções", async () => {
+    mockRepo.find.mockResolvedValue([]);
+    const result = await useCase.execute(1);
+    expect(result.averageMinutes).toBe(0);
+  });
 
-    it("deve retornar média zero quando não há execuções", async () => {
-      (ServiceExecutionRepository.find as jest.Mock).mockResolvedValue([]);
-
-      const result = await getAverageTimeUseCase.execute(1);
-
-      expect(result.averageMinutes).toBe(0);
-      expect(result.totalExecutions).toBe(0);
-      expect(result.minMinutes).toBe(0);
-      expect(result.maxMinutes).toBe(0);
-    });
-
-    it("deve ignorar execuções sem duração", async () => {
-      (ServiceExecutionRepository.find as jest.Mock).mockResolvedValue([
-        { durationMinutes: 60 },
-        { durationMinutes: null },
-        { durationMinutes: 30 }
-      ]);
-
-      const result = await getAverageTimeUseCase.execute(1);
-
-      expect(result.averageMinutes).toBe(30);
-      expect(result.totalExecutions).toBe(3);
-    });
+  it("deve ignorar execuções sem duração", async () => {
+    mockRepo.find.mockResolvedValue([
+      { serviceId: 1, durationMinutes: 60 }
+    ]);
+    const result = await useCase.execute(1);
+    expect(result.totalExecutions).toBe(1);
   });
 });

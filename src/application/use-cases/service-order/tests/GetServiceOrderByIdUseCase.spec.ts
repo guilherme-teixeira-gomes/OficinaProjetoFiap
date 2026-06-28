@@ -1,41 +1,31 @@
-import { ServiceOrderRepository } from "../../../../infrastructure/repositories/ServiceOrderRepository";
 import { GetServiceOrderByIdUseCase } from "../GetServiceOrderByIdUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/ServiceOrderRepository", () => ({
-  ServiceOrderRepository: {
-    findOne: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("GetServiceOrderByIdUseCase", () => {
-  let getServiceOrderByIdUseCase: GetServiceOrderByIdUseCase;
+  let useCase: GetServiceOrderByIdUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    getServiceOrderByIdUseCase = new GetServiceOrderByIdUseCase();
+    mockRepo = { findOne: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new GetServiceOrderByIdUseCase();
   });
 
   it("deve buscar ordem por id", async () => {
-    (ServiceOrderRepository.findOne as jest.Mock).mockResolvedValue({
-      id: 1,
-      client: { id: 1 },
-      vehicle: { id: 1 },
-      services: [],
-      parts: [],
-      executions: []
-    });
+    const mockOrder = { id: 1, status: "RECEBIDA", services: [], parts: [], executions: [] };
+    mockRepo.findOne.mockResolvedValue(mockOrder);
 
-    const result = await getServiceOrderByIdUseCase.execute(1);
-
+    const result = await useCase.execute(1);
     expect(result).toHaveProperty("id", 1);
   });
 
   it("deve retornar null se ordem não existir", async () => {
-    (ServiceOrderRepository.findOne as jest.Mock).mockResolvedValue(null);
-
-    const result = await getServiceOrderByIdUseCase.execute(999);
-
+    mockRepo.findOne.mockResolvedValue(null);
+    const result = await useCase.execute(999);
     expect(result).toBeNull();
   });
 });

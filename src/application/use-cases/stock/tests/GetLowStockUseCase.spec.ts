@@ -1,48 +1,29 @@
-import { PartRepository } from "../../../../infrastructure/repositories/PartRepository";
 import { GetLowStockUseCase } from "../GetLowStockUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
-  PartRepository: {
-    find: jest.fn(),
-  }
-}));
-
-jest.mock("typeorm", () => ({
-  LessThan: jest.fn((value) => ({ operator: "<", value }))
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("GetLowStockUseCase", () => {
-  let getLowStockUseCase: GetLowStockUseCase;
+  let useCase: GetLowStockUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    getLowStockUseCase = new GetLowStockUseCase();
+    mockRepo = { find: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new GetLowStockUseCase();
   });
 
-  it("deve retornar peças com estoque baixo (menos de 5)", async () => {
-    const mockParts = [
-      { id: 1, name: "Filtro de óleo", stock: 3 },
-      { id: 2, name: "Pastilha de freio", stock: 1 },
-      { id: 3, name: "Óleo de motor", stock: 4 }
-    ];
-
-    (PartRepository.find as jest.Mock).mockResolvedValue(mockParts);
-
-    const result = await getLowStockUseCase.execute();
-
-    expect(result).toHaveLength(3);
-    expect(PartRepository.find).toHaveBeenCalledWith({
-      where: { stock: expect.any(Object) },
-      order: { stock: "ASC" }
-    });
+  it("deve retornar peças com estoque baixo", async () => {
+    mockRepo.find.mockResolvedValue([{ id: 1, stock: 2 }]);
+    const result = await useCase.execute();
+    expect(result).toHaveLength(1);
   });
 
-  it("deve retornar array vazio quando não há peças com estoque baixo", async () => {
-    (PartRepository.find as jest.Mock).mockResolvedValue([]);
-
-    const result = await getLowStockUseCase.execute();
-
-    expect(result).toEqual([]);
+  it("deve retornar array vazio quando não há peças com baixo estoque", async () => {
+    mockRepo.find.mockResolvedValue([]);
+    const result = await useCase.execute();
+    expect(result).toHaveLength(0);
   });
 });

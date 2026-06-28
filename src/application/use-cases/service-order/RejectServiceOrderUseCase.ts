@@ -4,7 +4,6 @@ import { sendEmail, emailStatusAtualizado } from "../../../infrastructure/email/
 
 export class RejectOrderUseCase {
   async execute(id: number) {
-    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
     const orderRepo = AppDataSource.getRepository(ServiceOrder);
 
     const order = await orderRepo.findOne({ where: { id }, relations: ["client"] });

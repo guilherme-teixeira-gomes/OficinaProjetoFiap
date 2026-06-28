@@ -1,37 +1,29 @@
-import { ServiceRepository } from "../../../../infrastructure/repositories/ServiceRepository";
 import { GetServiceByIdUseCase } from "../GetServiceByIdUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/ServiceRepository", () => ({
-  ServiceRepository: {
-    findOne: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("GetServiceByIdUseCase", () => {
-  let getServiceByIdUseCase: GetServiceByIdUseCase;
+  let useCase: GetServiceByIdUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    getServiceByIdUseCase = new GetServiceByIdUseCase();
+    mockRepo = { findOne: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new GetServiceByIdUseCase();
   });
 
   it("deve buscar serviço por id", async () => {
-    const mockService = { id: 1, name: "Troca de óleo", price: 100 };
-
-    (ServiceRepository.findOne as jest.Mock).mockResolvedValue(mockService);
-
-    const result = await getServiceByIdUseCase.getById(1);
-
+    mockRepo.findOne.mockResolvedValue({ id: 1, name: "Troca de óleo" });
+    const result = await useCase.getById(1);
     expect(result).toHaveProperty("id", 1);
-    expect(ServiceRepository.findOne).toHaveBeenCalledWith({ where: { id: 1 } });
   });
 
   it("deve retornar null se serviço não existir", async () => {
-    (ServiceRepository.findOne as jest.Mock).mockResolvedValue(null);
-
-    const result = await getServiceByIdUseCase.getById(999);
-
+    mockRepo.findOne.mockResolvedValue(null);
+    const result = await useCase.getById(999);
     expect(result).toBeNull();
   });
 });

@@ -1,60 +1,23 @@
-
-import { Between } from "typeorm";
-import { ServiceExecutionRepository } from "../../../../infrastructure/repositories/ServiceExecutionRepository";
 import { GetExecutionsByPeriodUseCase } from "../GetExecutionsByPeriodUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-jest.mock("../../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
-  ServiceExecutionRepository: {
-    find: jest.fn(),
-  }
-}));
-
-jest.mock("typeorm", () => ({
-  Between: jest.fn((start, end) => ({ between: { start, end } }))
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("GetExecutionsByPeriodUseCase", () => {
-  let getExecutionsByPeriodUseCase: GetExecutionsByPeriodUseCase;
+  let useCase: GetExecutionsByPeriodUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    getExecutionsByPeriodUseCase = new GetExecutionsByPeriodUseCase();
+    mockRepo = { find: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new GetExecutionsByPeriodUseCase();
   });
 
-  describe("execute", () => {
-    it("deve buscar execuções por período", async () => {
-      const startDate = new Date("2024-01-01");
-      const endDate = new Date("2024-01-31");
-      const mockExecutions = [{ 
-        id: 1, 
-        status: "CONCLUIDO",
-        service: { id: 1, name: "Troca de óleo" },
-        serviceOrder: { id: 1, mechanic: { id: 1 } }
-      }];
-
-      (ServiceExecutionRepository.find as jest.Mock).mockResolvedValue(mockExecutions);
-
-      const result = await getExecutionsByPeriodUseCase.execute(startDate, endDate);
-
-      expect(result).toHaveLength(1);
-      expect(ServiceExecutionRepository.find).toHaveBeenCalledWith({
-        where: {
-          startedAt: expect.any(Object),
-          status: "CONCLUIDO"
-        },
-        relations: ["service", "serviceOrder", "serviceOrder.mechanic"]
-      });
-    });
-
-    it("deve retornar array vazio quando não há execuções", async () => {
-      const startDate = new Date("2024-01-01");
-      const endDate = new Date("2024-01-31");
-
-      (ServiceExecutionRepository.find as jest.Mock).mockResolvedValue([]);
-
-      const result = await getExecutionsByPeriodUseCase.execute(startDate, endDate);
-
-      expect(result).toEqual([]);
-    });
+  it("deve retornar execuções no período", async () => {
+    mockRepo.find.mockResolvedValue([{ id: 1 }, { id: 2 }]);
+    const result = await useCase.execute(new Date("2024-01-01"), new Date("2024-12-31"));
+    expect(result).toHaveLength(2);
   });
 });

@@ -1,87 +1,51 @@
-import { ServiceOrderRepository } from "../../../../infrastructure/repositories/ServiceOrderRepository";
-import { UserRepository } from "../../../../infrastructure/repositories/UserRepository";
 import { AcceptOrderUseCase } from "../AcceptOrderUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/UserRepository", () => ({
-  UserRepository: {
-    findOne: jest.fn(),
-  }
-}));
-
-jest.mock("../../../../infrastructure/repositories/ServiceOrderRepository", () => ({
-  ServiceOrderRepository: {
-    findOne: jest.fn(),
-    save: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("AcceptOrderUseCase", () => {
-  let acceptOrderUseCase: AcceptOrderUseCase;
+  let useCase: AcceptOrderUseCase;
+  let mockUserRepo: any;
+  let mockOrderRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    acceptOrderUseCase = new AcceptOrderUseCase();
+    mockUserRepo = { findOne: jest.fn() };
+    mockOrderRepo = { findOne: jest.fn(), save: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock)
+      .mockImplementationOnce(() => mockUserRepo)
+      .mockImplementationOnce(() => mockOrderRepo);
+    useCase = new AcceptOrderUseCase();
   });
 
   it("deve aceitar ordem e mudar status para EM_DIAGNOSTICO", async () => {
     const mockMechanic = { id: 1, role: "mecanico" };
-    const mockOrder = {
-      id: 1,
-      status: "RECEBIDA",
-      mechanicId: null,
-      mechanic: null
-    };
+    const mockOrder = { id: 1, status: "RECEBIDA", mechanicId: null };
+    const updatedOrder = { ...mockOrder, status: "EM_DIAGNOSTICO", mechanicId: 1 };
 
-    const updatedOrder = {
-      ...mockOrder,
-      status: "EM_DIAGNOSTICO",
-      mechanic: mockMechanic,
-      mechanicId: 1,
-      startedAt: new Date()
-    };
+    mockUserRepo.findOne.mockResolvedValue(mockMechanic);
+    mockOrderRepo.findOne.mockResolvedValueOnce(mockOrder).mockResolvedValueOnce(updatedOrder);
+    mockOrderRepo.save.mockResolvedValue(updatedOrder);
 
-    (UserRepository.findOne as jest.Mock).mockResolvedValue(mockMechanic);
-    (ServiceOrderRepository.findOne as jest.Mock).mockResolvedValueOnce(mockOrder);
-    (ServiceOrderRepository.save as jest.Mock).mockResolvedValue(updatedOrder);
-    (ServiceOrderRepository.findOne as jest.Mock).mockResolvedValueOnce(updatedOrder);
-
-    const result = await acceptOrderUseCase.execute(1, 1);
-
+    const result = await useCase.execute(1, 1);
     expect(result).toHaveProperty("status", "EM_DIAGNOSTICO");
   });
 
   it("não deve aceitar ordem se mecânico não for encontrado", async () => {
-    (UserRepository.findOne as jest.Mock).mockResolvedValue(null);
-
-    await expect(acceptOrderUseCase.execute(1, 1)).rejects.toThrow(
-      "Mecânico não encontrado ou não autorizado"
-    );
+    mockUserRepo.findOne.mockResolvedValue(null);
+    await expect(useCase.execute(1, 1)).rejects.toThrow("Mecânico não encontrado ou não autorizado");
   });
 
   it("não deve aceitar ordem já aceita", async () => {
-    (UserRepository.findOne as jest.Mock).mockResolvedValue({ id: 1, role: "mecanico" });
-    (ServiceOrderRepository.findOne as jest.Mock).mockResolvedValue({
-      id: 1,
-      status: "RECEBIDA",
-      mechanicId: 2
-    });
-
-    await expect(acceptOrderUseCase.execute(1, 1)).rejects.toThrow(
-      "Esta OS já foi aceita por outro mecânico"
-    );
+    mockUserRepo.findOne.mockResolvedValue({ id: 1, role: "mecanico" });
+    mockOrderRepo.findOne.mockResolvedValue({ id: 1, status: "RECEBIDA", mechanicId: 2 });
+    await expect(useCase.execute(1, 1)).rejects.toThrow("Esta OS já foi aceita por outro mecânico");
   });
 
   it("não deve aceitar ordem com status diferente de RECEBIDA", async () => {
-    (UserRepository.findOne as jest.Mock).mockResolvedValue({ id: 1, role: "mecanico" });
-    (ServiceOrderRepository.findOne as jest.Mock).mockResolvedValue({
-      id: 1,
-      status: "EM_EXECUCAO",
-      mechanicId: null
-    });
-
-    await expect(acceptOrderUseCase.execute(1, 1)).rejects.toThrow(
-      "Ordem de serviço precisa estar com status RECEBIDA"
-    );
+    mockUserRepo.findOne.mockResolvedValue({ id: 1, role: "mecanico" });
+    mockOrderRepo.findOne.mockResolvedValue({ id: 1, status: "EM_EXECUCAO", mechanicId: null });
+    await expect(useCase.execute(1, 1)).rejects.toThrow("Ordem de serviço precisa estar com status RECEBIDA");
   });
 });

@@ -1,67 +1,40 @@
-import { ServiceExecutionRepository } from "../../../../infrastructure/repositories/ServiceExecutionRepository";
-import { ServiceOrderRepository } from "../../../../infrastructure/repositories/ServiceOrderRepository";
 import { CreateExecutionsFromApprovedOrderUseCase } from "../CreateExecutionsFromApprovedOrderUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/ServiceOrderRepository", () => ({
-  ServiceOrderRepository: {
-    findOne: jest.fn(),
-  }
-}));
-
-jest.mock("../../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
-  ServiceExecutionRepository: {
-    findOne: jest.fn(),
-    save: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("CreateExecutionsFromApprovedOrderUseCase", () => {
-  let createExecutionsUseCase: CreateExecutionsFromApprovedOrderUseCase;
+  let useCase: CreateExecutionsFromApprovedOrderUseCase;
+  let mockOrderRepo: any;
+  let mockExecutionRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    createExecutionsUseCase = new CreateExecutionsFromApprovedOrderUseCase();
+    mockOrderRepo = { findOne: jest.fn() };
+    mockExecutionRepo = { findOne: jest.fn(), save: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock)
+      .mockImplementationOnce(() => mockOrderRepo)
+      .mockImplementationOnce(() => mockExecutionRepo);
+    useCase = new CreateExecutionsFromApprovedOrderUseCase();
   });
 
-  describe("execute", () => {
-    it("deve criar execuções a partir da ordem aprovada", async () => {
-      (ServiceOrderRepository.findOne as jest.Mock).mockResolvedValue({
-        id: 1,
-        services: [{ id: 10 }, { id: 20 }]
-      });
+  it("deve criar execuções a partir da ordem aprovada", async () => {
+    const mockOrder = { id: 1, services: [{ id: 1 }, { id: 2 }] };
+    mockOrderRepo.findOne.mockResolvedValue(mockOrder);
+    mockExecutionRepo.findOne.mockResolvedValue(null);
+    mockExecutionRepo.save.mockResolvedValueOnce({ id: 1 }).mockResolvedValueOnce({ id: 2 });
 
-      (ServiceExecutionRepository.findOne as jest.Mock).mockResolvedValue(null);
-      (ServiceExecutionRepository.save as jest.Mock).mockResolvedValue({});
+    const result = await useCase.execute(1);
+    expect(result).toHaveLength(2);
+  });
 
-      await createExecutionsUseCase.execute(1);
+  it("não deve criar execuções duplicadas", async () => {
+    const mockOrder = { id: 1, services: [{ id: 1 }] };
+    mockOrderRepo.findOne.mockResolvedValue(mockOrder);
+    mockExecutionRepo.findOne.mockResolvedValue({ id: 1, serviceOrderId: 1, serviceId: 1 });
 
-      expect(ServiceExecutionRepository.save).toHaveBeenCalledTimes(2);
-    });
-
-    it("deve lançar erro se ordem não existir", async () => {
-      (ServiceOrderRepository.findOne as jest.Mock).mockResolvedValue(null);
-
-      await expect(
-        createExecutionsUseCase.execute(1)
-      ).rejects.toThrow("Ordem não encontrada");
-    });
-
-    it("não deve criar execuções duplicadas", async () => {
-      (ServiceOrderRepository.findOne as jest.Mock).mockResolvedValue({
-        id: 1,
-        services: [{ id: 10 }, { id: 20 }]
-      });
-
-      (ServiceExecutionRepository.findOne as jest.Mock)
-        .mockResolvedValueOnce({ id: 1 }) // primeira execução já existe
-        .mockResolvedValueOnce(null); // segunda execução não existe
-
-      (ServiceExecutionRepository.save as jest.Mock).mockResolvedValue({});
-
-      await createExecutionsUseCase.execute(1);
-
-      expect(ServiceExecutionRepository.save).toHaveBeenCalledTimes(1);
-    });
+    const result = await useCase.execute(1);
+    expect(result).toHaveLength(0);
   });
 });

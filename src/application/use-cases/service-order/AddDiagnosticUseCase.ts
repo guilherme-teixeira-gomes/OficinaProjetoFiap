@@ -7,7 +7,6 @@ import { AddDiagnosticDTO } from "../../../shared/types/service-order.types";
 
 export class AddDiagnosticUseCase {
   async execute(orderId: number, diagnosticData: AddDiagnosticDTO) {
-    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
     const orderRepo = AppDataSource.getRepository(ServiceOrder);
     const diagnosticRepo = AppDataSource.getRepository(Diagnostic);
     const serviceRepo = AppDataSource.getRepository(Service);

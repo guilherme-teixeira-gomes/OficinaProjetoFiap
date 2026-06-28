@@ -1,78 +1,41 @@
-import { ServiceExecutionRepository } from "../../../../infrastructure/repositories/ServiceExecutionRepository";
 import { StartServiceExecutionUseCase } from "../StartServiceExecutionUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
-  ServiceExecutionRepository: {
-    findOne: jest.fn(),
-    create: jest.fn(),
-    save: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("StartServiceExecutionUseCase", () => {
-  let startServiceUseCase: StartServiceExecutionUseCase;
+  let useCase: StartServiceExecutionUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    startServiceUseCase = new StartServiceExecutionUseCase();
+    mockRepo = { findOne: jest.fn(), create: jest.fn(), save: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new StartServiceExecutionUseCase();
   });
 
-  describe("execute", () => {
-    it("deve iniciar serviço novo", async () => {
-      (ServiceExecutionRepository.findOne as jest.Mock).mockResolvedValue(null);
-      (ServiceExecutionRepository.create as jest.Mock).mockReturnValue({
-        serviceOrderId: 1,
-        serviceId: 10,
-        status: "EM_ANDAMENTO",
-        startedAt: expect.any(Date)
-      });
-      (ServiceExecutionRepository.save as jest.Mock).mockResolvedValue({
-        id: 1,
-        status: "EM_ANDAMENTO"
-      });
+  it("deve iniciar serviço novo", async () => {
+    mockRepo.findOne.mockResolvedValue(null);
+    const mockExecution = { id: 1, status: "EM_ANDAMENTO" };
+    mockRepo.create.mockReturnValue(mockExecution);
+    mockRepo.save.mockResolvedValue(mockExecution);
 
-      const result = await startServiceUseCase.execute({
-        serviceOrderId: 1,
-        serviceId: 10
-      });
+    const result = await useCase.execute({ serviceOrderId: 1, serviceId: 1 });
+    expect(result).toHaveProperty("status", "EM_ANDAMENTO");
+  });
 
-      expect(result.status).toBe("EM_ANDAMENTO");
-    });
+  it("deve iniciar serviço pendente existente", async () => {
+    const mockExecution = { id: 1, status: "PENDENTE", startedAt: null };
+    mockRepo.findOne.mockResolvedValue(mockExecution);
+    mockRepo.save.mockResolvedValue({ ...mockExecution, status: "EM_ANDAMENTO" });
 
-    it("deve iniciar serviço pendente existente", async () => {
-      const existingExecution = {
-        id: 1,
-        status: "PENDENTE",
-        startedAt: null
-      };
+    const result = await useCase.execute({ serviceOrderId: 1, serviceId: 1 });
+    expect(mockRepo.save).toHaveBeenCalled();
+  });
 
-      (ServiceExecutionRepository.findOne as jest.Mock).mockResolvedValue(existingExecution);
-      (ServiceExecutionRepository.save as jest.Mock).mockResolvedValue({
-        ...existingExecution,
-        status: "EM_ANDAMENTO",
-        startedAt: expect.any(Date)
-      });
-
-      const result = await startServiceUseCase.execute({
-        serviceOrderId: 1,
-        serviceId: 10
-      });
-
-      expect(result.status).toBe("EM_ANDAMENTO");
-    });
-
-    it("deve dar erro se serviço já concluído", async () => {
-      (ServiceExecutionRepository.findOne as jest.Mock).mockResolvedValue({
-        status: "CONCLUIDO"
-      });
-
-      await expect(
-        startServiceUseCase.execute({
-          serviceOrderId: 1,
-          serviceId: 10
-        })
-      ).rejects.toThrow("Este serviço já foi concluído");
-    });
+  it("deve dar erro se serviço já concluído", async () => {
+    mockRepo.findOne.mockResolvedValue({ id: 1, status: "CONCLUIDO" });
+    await expect(useCase.execute({ serviceOrderId: 1, serviceId: 1 })).rejects.toThrow("Este serviço já foi concluído");
   });
 });

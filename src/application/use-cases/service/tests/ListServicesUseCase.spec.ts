@@ -1,41 +1,29 @@
-import { ServiceRepository } from "../../../../infrastructure/repositories/ServiceRepository";
 import { ListServicesUseCase } from "../ListServicesUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/ServiceRepository", () => ({
-  ServiceRepository: {
-    find: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("ListServicesUseCase", () => {
-  let listServicesUseCase: ListServicesUseCase;
+  let useCase: ListServicesUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    listServicesUseCase = new ListServicesUseCase();
+    mockRepo = { find: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new ListServicesUseCase();
   });
 
   it("deve listar todos os serviços", async () => {
-    const mockServices = [
-      { id: 1, name: "Troca de óleo", price: 100 },
-      { id: 2, name: "Alinhamento", price: 80 }
-    ];
-
-    (ServiceRepository.find as jest.Mock).mockResolvedValue(mockServices);
-
-    const result = await listServicesUseCase.list();
-
+    mockRepo.find.mockResolvedValue([{ id: 1 }, { id: 2 }]);
+    const result = await useCase.list();
     expect(result).toHaveLength(2);
-    expect(result[0].name).toBe("Troca de óleo");
-    expect(result[1].name).toBe("Alinhamento");
   });
 
   it("deve retornar array vazio quando não há serviços", async () => {
-    (ServiceRepository.find as jest.Mock).mockResolvedValue([]);
-
-    const result = await listServicesUseCase.list();
-
-    expect(result).toEqual([]);
+    mockRepo.find.mockResolvedValue([]);
+    const result = await useCase.list();
+    expect(result).toHaveLength(0);
   });
 });

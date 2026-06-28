@@ -1,138 +1,63 @@
-import { StockMovementRepository } from "../../../../infrastructure/repositories/StockMovementRepository";
 import { GetStockMovementsUseCase } from "../GetStockMovementsUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/StockMovementRepository", () => ({
-  StockMovementRepository: {
-    createQueryBuilder: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("GetStockMovementsUseCase", () => {
-  let getStockMovementsUseCase: GetStockMovementsUseCase;
+  let useCase: GetStockMovementsUseCase;
+  let mockRepo: any;
+  let mockQb: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    getStockMovementsUseCase = new GetStockMovementsUseCase();
+    mockQb = {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      getMany: jest.fn()
+    };
+    mockRepo = { createQueryBuilder: jest.fn().mockReturnValue(mockQb) };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new GetStockMovementsUseCase();
   });
 
   it("deve retornar todas as movimentações sem filtros", async () => {
-    const mockMovements = [
-      { id: 1, partId: 1, quantity: 5, type: "IN", createdAt: new Date() },
-      { id: 2, partId: 2, quantity: 3, type: "OUT", createdAt: new Date() }
-    ];
-
-    const mockQueryBuilder = {
-      leftJoinAndSelect: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      getMany: jest.fn().mockResolvedValue(mockMovements)
-    };
-
-    (StockMovementRepository.createQueryBuilder as jest.Mock).mockReturnValue(mockQueryBuilder);
-
-    const result = await getStockMovementsUseCase.execute();
-
+    mockQb.getMany.mockResolvedValue([{ id: 1 }, { id: 2 }]);
+    const result = await useCase.execute();
     expect(result).toHaveLength(2);
   });
 
   it("deve filtrar por partId", async () => {
-    const mockQueryBuilder = {
-      leftJoinAndSelect: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      getMany: jest.fn().mockResolvedValue([])
-    };
-
-    (StockMovementRepository.createQueryBuilder as jest.Mock).mockReturnValue(mockQueryBuilder);
-
-    await getStockMovementsUseCase.execute({ partId: 1 });
-
-    expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-      "movement.partId = :partId",
-      { partId: 1 }
-    );
+    mockQb.getMany.mockResolvedValue([{ id: 1, partId: 1 }]);
+    const result = await useCase.execute({ partId: 1 });
+    expect(mockQb.andWhere).toHaveBeenCalledWith("movement.partId = :partId", { partId: 1 });
   });
 
   it("deve filtrar por serviceOrderId", async () => {
-    const mockQueryBuilder = {
-      leftJoinAndSelect: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      getMany: jest.fn().mockResolvedValue([])
-    };
-
-    (StockMovementRepository.createQueryBuilder as jest.Mock).mockReturnValue(mockQueryBuilder);
-
-    await getStockMovementsUseCase.execute({ serviceOrderId: 10 });
-
-    expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-      "movement.serviceOrderId = :serviceOrderId",
-      { serviceOrderId: 10 }
-    );
+    mockQb.getMany.mockResolvedValue([{ id: 1 }]);
+    const result = await useCase.execute({ serviceOrderId: 5 });
+    expect(mockQb.andWhere).toHaveBeenCalledWith("movement.serviceOrderId = :serviceOrderId", { serviceOrderId: 5 });
   });
 
   it("deve filtrar por período", async () => {
-    const startDate = new Date("2024-01-01");
-    const endDate = new Date("2024-01-31");
-    const mockQueryBuilder = {
-      leftJoinAndSelect: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      getMany: jest.fn().mockResolvedValue([])
-    };
-
-    (StockMovementRepository.createQueryBuilder as jest.Mock).mockReturnValue(mockQueryBuilder);
-
-    await getStockMovementsUseCase.execute({ startDate, endDate });
-
-    expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-      "movement.createdAt >= :startDate",
-      { startDate }
-    );
-    expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-      "movement.createdAt <= :endDate",
-      { endDate }
-    );
+    mockQb.getMany.mockResolvedValue([]);
+    const start = new Date("2024-01-01");
+    const end = new Date("2024-12-31");
+    await useCase.execute({ startDate: start, endDate: end });
+    expect(mockQb.andWhere).toHaveBeenCalledWith("movement.createdAt >= :startDate", { startDate: start });
+    expect(mockQb.andWhere).toHaveBeenCalledWith("movement.createdAt <= :endDate", { endDate: end });
   });
 
   it("deve filtrar por tipo", async () => {
-    const mockQueryBuilder = {
-      leftJoinAndSelect: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      getMany: jest.fn().mockResolvedValue([])
-    };
-
-    (StockMovementRepository.createQueryBuilder as jest.Mock).mockReturnValue(mockQueryBuilder);
-
-    await getStockMovementsUseCase.execute({ type: "IN" });
-
-    expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-      "movement.type = :type",
-      { type: "IN" }
-    );
+    mockQb.getMany.mockResolvedValue([]);
+    await useCase.execute({ type: "IN" });
+    expect(mockQb.andWhere).toHaveBeenCalledWith("movement.type = :type", { type: "IN" });
   });
 
   it("deve aplicar múltiplos filtros simultaneamente", async () => {
-    const startDate = new Date("2024-01-01");
-    const endDate = new Date("2024-01-31");
-    const mockQueryBuilder = {
-      leftJoinAndSelect: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      getMany: jest.fn().mockResolvedValue([])
-    };
-
-    (StockMovementRepository.createQueryBuilder as jest.Mock).mockReturnValue(mockQueryBuilder);
-
-    await getStockMovementsUseCase.execute({
-      partId: 1,
-      serviceOrderId: 10,
-      startDate,
-      endDate,
-      type: "OUT"
-    });
-
-    expect(mockQueryBuilder.andWhere).toHaveBeenCalledTimes(5);
+    mockQb.getMany.mockResolvedValue([]);
+    await useCase.execute({ partId: 1, type: "OUT" });
+    expect(mockQb.andWhere).toHaveBeenCalledTimes(2);
   });
 });

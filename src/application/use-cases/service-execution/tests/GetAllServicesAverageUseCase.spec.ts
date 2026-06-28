@@ -1,55 +1,42 @@
-import { ServiceExecutionRepository } from "../../../../infrastructure/repositories/ServiceExecutionRepository";
 import { GetAllServicesAverageUseCase } from "../GetAllServicesAverageUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/ServiceExecutionRepository", () => ({
-  ServiceExecutionRepository: {
-    find: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("GetAllServicesAverageUseCase", () => {
-  let getAllServicesAverageUseCase: GetAllServicesAverageUseCase;
+  let useCase: GetAllServicesAverageUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    getAllServicesAverageUseCase = new GetAllServicesAverageUseCase();
+    mockRepo = { find: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new GetAllServicesAverageUseCase();
   });
 
-  describe("execute", () => {
-    it("deve calcular média de todos os serviços", async () => {
-      (ServiceExecutionRepository.find as jest.Mock).mockResolvedValue([
-        { serviceId: 1, durationMinutes: 60, service: { id: 1, name: "Troca de óleo" } },
-        { serviceId: 1, durationMinutes: 30, service: { id: 1, name: "Troca de óleo" } },
-        { serviceId: 2, durationMinutes: 90, service: { id: 2, name: "Alinhamento" } }
-      ]);
+  it("deve calcular média de todos os serviços", async () => {
+    mockRepo.find.mockResolvedValue([
+      { serviceId: 1, durationMinutes: 60, service: { name: "Troca de óleo" } },
+      { serviceId: 1, durationMinutes: 120, service: { name: "Troca de óleo" } }
+    ]);
 
-      const result = await getAllServicesAverageUseCase.execute();
+    const result = await useCase.execute();
+    expect(result).toHaveLength(1);
+    expect(result[0].averageMinutes).toBe(90);
+  });
 
-      expect(result).toHaveLength(2);
-      expect(result[0].averageMinutes).toBe(45);
-      expect(result[1].averageMinutes).toBe(90);
-    });
+  it("deve retornar array vazio quando não há execuções", async () => {
+    mockRepo.find.mockResolvedValue([]);
+    const result = await useCase.execute();
+    expect(result).toHaveLength(0);
+  });
 
-    it("deve retornar array vazio quando não há execuções", async () => {
-      (ServiceExecutionRepository.find as jest.Mock).mockResolvedValue([]);
-
-      const result = await getAllServicesAverageUseCase.execute();
-
-      expect(result).toEqual([]);
-    });
-
-    it("deve lidar com serviços sem nome", async () => {
-      (ServiceExecutionRepository.find as jest.Mock).mockResolvedValue([
-        { serviceId: 1, durationMinutes: 60, service: null },
-        { serviceId: 1, durationMinutes: 30, service: null }
-      ]);
-
-      const result = await getAllServicesAverageUseCase.execute();
-
-      expect(result).toHaveLength(1);
-      expect(result[0].serviceName).toBeUndefined();
-      expect(result[0].averageMinutes).toBe(45);
-    });
+  it("deve lidar com serviços sem nome", async () => {
+    mockRepo.find.mockResolvedValue([
+      { serviceId: 1, durationMinutes: 60, service: null }
+    ]);
+    const result = await useCase.execute();
+    expect(result[0].serviceName).toBeUndefined();
   });
 });

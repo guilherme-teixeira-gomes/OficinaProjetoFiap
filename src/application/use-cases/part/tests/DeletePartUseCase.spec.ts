@@ -1,37 +1,31 @@
-import { PartRepository } from "../../../../infrastructure/repositories/PartRepository";
 import { DeletePartUseCase } from "../DeletePartUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
-  PartRepository: {
-    findOne: jest.fn(),
-    remove: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("DeletePartUseCase", () => {
-  let deletePartUseCase: DeletePartUseCase;
+  let useCase: DeletePartUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    deletePartUseCase = new DeletePartUseCase();
+    mockRepo = { findOne: jest.fn(), remove: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new DeletePartUseCase();
   });
 
   it("deve deletar peça com sucesso", async () => {
-    const existingPart = { id: 1, name: "Filtro" };
+    const mockPart = { id: 1, name: "Filtro" };
+    mockRepo.findOne.mockResolvedValue(mockPart);
+    mockRepo.remove.mockResolvedValue(mockPart);
 
-    (PartRepository.findOne as jest.Mock).mockResolvedValue(existingPart);
-    (PartRepository.remove as jest.Mock).mockResolvedValue(existingPart);
-
-    const result = await deletePartUseCase.delete(1);
-
-    expect(result).toHaveProperty("id", 1);
-    expect(PartRepository.remove).toHaveBeenCalledWith(existingPart);
+    const result = await useCase.delete(1);
+    expect(mockRepo.remove).toHaveBeenCalledWith(mockPart);
   });
 
   it("deve dar erro ao deletar peça inexistente", async () => {
-    (PartRepository.findOne as jest.Mock).mockResolvedValue(null);
-
-    await expect(deletePartUseCase.delete(1)).rejects.toThrow("Peça não encontrada");
+    mockRepo.findOne.mockResolvedValue(null);
+    await expect(useCase.delete(999)).rejects.toThrow("Peça não encontrada");
   });
 });

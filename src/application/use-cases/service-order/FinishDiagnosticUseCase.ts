@@ -5,7 +5,6 @@ import { calculateBudgetFromDiagnostics, calculateDiagnosticTotal } from "../../
 
 export class FinishDiagnosticUseCase {
   async execute(orderId: number) {
-    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
     const orderRepo = AppDataSource.getRepository(ServiceOrder);
 
     const order = await orderRepo.findOne({ 

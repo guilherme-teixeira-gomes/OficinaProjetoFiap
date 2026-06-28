@@ -1,76 +1,46 @@
-import { DiagnosticRepository } from "../../../../infrastructure/repositories/DiagnosticRepository";
-import { PartRepository } from "../../../../infrastructure/repositories/PartRepository";
-import { ServiceOrderRepository } from "../../../../infrastructure/repositories/ServiceOrderRepository";
-import { ServiceRepository } from "../../../../infrastructure/repositories/ServiceRepository";
 import { AddDiagnosticUseCase } from "../AddDiagnosticUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/ServiceRepository", () => ({
-  ServiceRepository: {
-    findByIds: jest.fn(),
-  }
-}));
-
-jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
-  PartRepository: {
-    findByIds: jest.fn(),
-  }
-}));
-
-jest.mock("../../../../infrastructure/repositories/ServiceOrderRepository", () => ({
-  ServiceOrderRepository: {
-    findOne: jest.fn(),
-  }
-}));
-
-jest.mock("../../../../infrastructure/repositories/DiagnosticRepository", () => ({
-  DiagnosticRepository: {
-    create: jest.fn(),
-    save: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("AddDiagnosticUseCase", () => {
-  let addDiagnosticUseCase: AddDiagnosticUseCase;
+  let useCase: AddDiagnosticUseCase;
+  let mockOrderRepo: any;
+  let mockDiagnosticRepo: any;
+  let mockServiceRepo: any;
+  let mockPartRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    addDiagnosticUseCase = new AddDiagnosticUseCase();
+    mockOrderRepo = { findOne: jest.fn() };
+    mockDiagnosticRepo = { create: jest.fn(), save: jest.fn() };
+    mockServiceRepo = { findByIds: jest.fn() };
+    mockPartRepo = { findByIds: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock)
+      .mockImplementationOnce(() => mockOrderRepo)
+      .mockImplementationOnce(() => mockDiagnosticRepo)
+      .mockImplementationOnce(() => mockServiceRepo)
+      .mockImplementationOnce(() => mockPartRepo);
+    useCase = new AddDiagnosticUseCase();
   });
 
   it("deve adicionar diagnóstico", async () => {
-    (ServiceOrderRepository.findOne as jest.Mock).mockResolvedValue({
-      id: 1,
-      status: "EM_DIAGNOSTICO",
-      diagnostics: []
-    });
+    const mockOrder = { id: 1, status: "EM_DIAGNOSTICO", diagnostics: [] };
+    const mockDiagnostic = { id: 1, title: "Troca de óleo" };
+    mockOrderRepo.findOne.mockResolvedValue(mockOrder);
+    mockServiceRepo.findByIds.mockResolvedValue([]);
+    mockPartRepo.findByIds.mockResolvedValue([]);
+    mockDiagnosticRepo.create.mockReturnValue(mockDiagnostic);
+    mockDiagnosticRepo.save.mockResolvedValue(mockDiagnostic);
 
-    (ServiceRepository.findByIds as jest.Mock).mockResolvedValue([{ id: 1, price: 100 }]);
-    (PartRepository.findByIds as jest.Mock).mockResolvedValue([{ id: 2, price: 50 }]);
-
-    (DiagnosticRepository.create as jest.Mock).mockReturnValue({ id: 99 });
-    (DiagnosticRepository.save as jest.Mock).mockResolvedValue({ id: 99 });
-
-    const result = await addDiagnosticUseCase.execute(1, {
-      title: "Teste",
-      description: "desc",
-      includeInBudget: true,
-      priority: "alta",
-      serviceIds: [1],
-      partIds: [2]
-    });
-
-    expect(result).toHaveProperty("id", 99);
+    const result = await useCase.execute(1, { title: "Troca de óleo", description: "Óleo vencido", includeInBudget: true, serviceIds: [], partIds: [] });
+    expect(result).toHaveProperty("id", 1);
   });
 
   it("não deve adicionar diagnóstico fora do status correto", async () => {
-    (ServiceOrderRepository.findOne as jest.Mock).mockResolvedValue({
-      id: 1,
-      status: "FINALIZADA"
-    });
-
-    await expect(
-      addDiagnosticUseCase.execute(1, {} as any)
-    ).rejects.toThrow("Só é possível adicionar diagnósticos em status EM_DIAGNOSTICO");
+    mockOrderRepo.findOne.mockResolvedValue({ id: 1, status: "RECEBIDA" });
+    await expect(useCase.execute(1, { title: "Test", description: "Test", includeInBudget: true, serviceIds: [], partIds: [] }))
+      .rejects.toThrow("Só é possível adicionar diagnósticos em status EM_DIAGNOSTICO");
   });
 });

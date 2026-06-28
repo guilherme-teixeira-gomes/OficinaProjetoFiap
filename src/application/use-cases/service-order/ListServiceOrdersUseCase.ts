@@ -4,7 +4,6 @@ import { ServiceOrder } from "../../../domain/entities/ServiceOrder";
 
 export class ListServiceOrdersUseCase {
   async execute(excludeFinished: boolean = true) {
-    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
     const orderRepo = AppDataSource.getRepository(ServiceOrder);
 
     let where: any = {};

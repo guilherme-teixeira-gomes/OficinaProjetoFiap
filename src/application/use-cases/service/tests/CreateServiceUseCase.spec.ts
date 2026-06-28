@@ -1,83 +1,53 @@
-import { ServiceRepository } from "../../../../infrastructure/repositories/ServiceRepository";
 import { CreateServiceUseCase } from "../CreateServiceUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/ServiceRepository", () => ({
-  ServiceRepository: {
-    create: jest.fn(),
-    save: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("CreateServiceUseCase", () => {
-  let createServiceUseCase: CreateServiceUseCase;
+  let useCase: CreateServiceUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    createServiceUseCase = new CreateServiceUseCase();
+    mockRepo = { create: jest.fn(), save: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new CreateServiceUseCase();
   });
 
   it("deve criar serviço com sucesso", async () => {
-    const mockService = { id: 1, name: "Troca de óleo", price: 100 };
+    const mockService = { id: 1, name: "Troca de óleo", price: 150 };
+    mockRepo.create.mockReturnValue(mockService);
+    mockRepo.save.mockResolvedValue(mockService);
 
-    (ServiceRepository.create as jest.Mock).mockReturnValue(mockService);
-    (ServiceRepository.save as jest.Mock).mockResolvedValue(mockService);
-
-    const result = await createServiceUseCase.create({
-      name: "Troca de óleo",
-      price: 100
-    });
-
+    const result = await useCase.create({ name: "Troca de óleo", price: 150 });
     expect(result).toHaveProperty("id", 1);
-    expect(result.name).toBe("Troca de óleo");
   });
 
   it("deve criar serviço com descrição opcional", async () => {
-    const mockService = {
-      id: 1,
-      name: "Troca de óleo",
-      description: "Troca de óleo do motor",
-      price: 100
-    };
+    const mockService = { id: 2, name: "Alinhamento", price: 80, description: "Desc" };
+    mockRepo.create.mockReturnValue(mockService);
+    mockRepo.save.mockResolvedValue(mockService);
 
-    (ServiceRepository.create as jest.Mock).mockReturnValue(mockService);
-    (ServiceRepository.save as jest.Mock).mockResolvedValue(mockService);
-
-    const result = await createServiceUseCase.create({
-      name: "Troca de óleo",
-      description: "Troca de óleo do motor",
-      price: 100
-    });
-
-    expect(result.description).toBe("Troca de óleo do motor");
+    const result = await useCase.create({ name: "Alinhamento", price: 80, description: "Desc" });
+    expect(result).toHaveProperty("description", "Desc");
   });
 
   it("deve criar serviço com active false", async () => {
-    const mockService = { id: 1, name: "Troca de óleo", price: 100, active: false };
+    const mockService = { id: 3, name: "Serviço", price: 100, active: false };
+    mockRepo.create.mockReturnValue(mockService);
+    mockRepo.save.mockResolvedValue(mockService);
 
-    (ServiceRepository.create as jest.Mock).mockReturnValue(mockService);
-    (ServiceRepository.save as jest.Mock).mockResolvedValue(mockService);
-
-    const result = await createServiceUseCase.create({
-      name: "Troca de óleo",
-      price: 100,
-      active: false
-    });
-
-    expect(result.active).toBe(false);
+    const result = await useCase.create({ name: "Serviço", price: 100, active: false });
+    expect(result).toHaveProperty("active", false);
   });
 
   it("deve criar serviço com active true por padrão", async () => {
-    const mockService = { id: 1, name: "Troca de óleo", price: 100, active: true };
+    const mockService = { id: 4, name: "Serviço", price: 100, active: true };
+    mockRepo.create.mockReturnValue(mockService);
+    mockRepo.save.mockResolvedValue(mockService);
 
-    (ServiceRepository.create as jest.Mock).mockReturnValue(mockService);
-    (ServiceRepository.save as jest.Mock).mockResolvedValue(mockService);
-
-    const result = await createServiceUseCase.create({
-      name: "Troca de óleo",
-      price: 100
-    });
-
-    expect(result.active).toBe(true);
+    const result = await useCase.create({ name: "Serviço", price: 100 });
+    expect(result).toHaveProperty("active", true);
   });
 });

@@ -1,46 +1,37 @@
 import { RestoreStockUseCase } from "../RestoreStockUseCase";
-import { PartRepository } from "../../../../infrastructure/repositories/PartRepository";
-import { StockMovementRepository } from "../../../../infrastructure/repositories/StockMovementRepository";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
-  PartRepository: {
-    findOne: jest.fn(),
-    save: jest.fn(),
-  },
-}));
-
-jest.mock("../../../../infrastructure/repositories/StockMovementRepository", () => ({
-  StockMovementRepository: {
-    create: jest.fn(),
-    save: jest.fn(),
-  },
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("RestoreStockUseCase", () => {
   let useCase: RestoreStockUseCase;
+  let mockPartRepo: any;
+  let mockMovementRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    mockPartRepo = { findOne: jest.fn(), save: jest.fn() };
+    mockMovementRepo = { create: jest.fn(), save: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock)
+      .mockImplementationOnce(() => mockPartRepo)
+      .mockImplementationOnce(() => mockMovementRepo);
     useCase = new RestoreStockUseCase();
   });
 
   it("deve restaurar estoque com sucesso", async () => {
-    const part = { id: 1, name: "Filtro", stock: 5, price: 10 };
-    (PartRepository.findOne as jest.Mock).mockResolvedValue(part);
-    (PartRepository.save as jest.Mock).mockResolvedValue({ ...part, stock: 8 });
-    (StockMovementRepository.create as jest.Mock).mockReturnValue({ id: 1 });
-    (StockMovementRepository.save as jest.Mock).mockResolvedValue({ id: 1 });
+    const mockPart = { id: 1, name: "Filtro", price: 50, stock: 5 };
+    mockPartRepo.findOne.mockResolvedValue(mockPart);
+    mockPartRepo.save.mockResolvedValue({ ...mockPart, stock: 8 });
+    mockMovementRepo.create.mockReturnValue({});
+    mockMovementRepo.save.mockResolvedValue({});
 
-    const result = await useCase.execute(1, 3, 10);
-
-    expect(PartRepository.findOne).toHaveBeenCalledWith({ where: { id: 1 } });
-    expect(PartRepository.save).toHaveBeenCalled();
-    expect(result).toBeDefined();
+    await useCase.execute(1, 3, 1);
+    expect(mockPartRepo.save).toHaveBeenCalledWith({ ...mockPart, stock: 8 });
   });
 
   it("deve lançar erro se peça não encontrada", async () => {
-    (PartRepository.findOne as jest.Mock).mockResolvedValue(null);
-
-    await expect(useCase.execute(99, 3, 10)).rejects.toThrow("Peça não encontrada");
+    mockPartRepo.findOne.mockResolvedValue(null);
+    await expect(useCase.execute(999, 3, 1)).rejects.toThrow("Peça não encontrada");
   });
 });

@@ -5,7 +5,6 @@ import { User } from "../../../domain/entities/User";
 export class AcceptOrderUseCase {
   async execute(orderId: number, mechanicId: number) {
     const userRepo = AppDataSource.getRepository(User);
-    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
     const orderRepo = AppDataSource.getRepository(ServiceOrder);
 
     const mechanic = await userRepo.findOne({ 

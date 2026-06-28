@@ -27,7 +27,6 @@ export class ApproveOrderUseCase {
   }
 
   async execute(id: number, approvedDiagnosticIds?: number[]) {
-    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
     const orderRepo = AppDataSource.getRepository(ServiceOrder);
     const serviceRepo = AppDataSource.getRepository(Service);
     const partRepo = AppDataSource.getRepository(Part);

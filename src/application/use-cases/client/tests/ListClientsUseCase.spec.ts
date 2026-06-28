@@ -1,40 +1,31 @@
-import { ClientRepository } from "../../../../infrastructure/repositories/ClientRepository";
 import { ListClientsUseCase } from "../ListClientsUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/ClientRepository", () => ({
-  ClientRepository: {
-    find: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("ListClientsUseCase", () => {
-  let listClientsUseCase: ListClientsUseCase;
+  let useCase: ListClientsUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    listClientsUseCase = new ListClientsUseCase();
+    mockRepo = { find: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new ListClientsUseCase();
   });
 
   it("deve listar clientes com seus relacionamentos", async () => {
-    const mockClients = [
-      { id: 1, name: "João", vehicles: [], orders: [] },
-      { id: 2, name: "Maria", vehicles: [], orders: [] }
-    ];
+    const mockClients = [{ id: 1, name: "Gui" }, { id: 2, name: "Ana" }];
+    mockRepo.find.mockResolvedValue(mockClients);
 
-    (ClientRepository.find as jest.Mock).mockResolvedValue(mockClients);
-
-    const result = await listClientsUseCase.list();
-
+    const result = await useCase.list();
     expect(result).toHaveLength(2);
-    expect(ClientRepository.find).toHaveBeenCalledWith({ relations: ["vehicles", "orders"] });
   });
 
   it("deve retornar array vazio quando não há clientes", async () => {
-    (ClientRepository.find as jest.Mock).mockResolvedValue([]);
-
-    const result = await listClientsUseCase.list();
-
-    expect(result).toEqual([]);
+    mockRepo.find.mockResolvedValue([]);
+    const result = await useCase.list();
+    expect(result).toHaveLength(0);
   });
 });

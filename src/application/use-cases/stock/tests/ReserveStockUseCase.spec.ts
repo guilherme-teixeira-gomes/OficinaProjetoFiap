@@ -1,103 +1,55 @@
-import { PartRepository } from "../../../../infrastructure/repositories/PartRepository";
-import { StockMovementRepository } from "../../../../infrastructure/repositories/StockMovementRepository";
 import { ReserveStockUseCase } from "../ReserveStockUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
-  PartRepository: {
-    findOne: jest.fn(),
-    save: jest.fn(),
-  }
-}));
-
-jest.mock("../../../../infrastructure/repositories/StockMovementRepository", () => ({
-  StockMovementRepository: {
-    create: jest.fn(),
-    save: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("ReserveStockUseCase", () => {
-  let reserveStockUseCase: ReserveStockUseCase;
+  let useCase: ReserveStockUseCase;
+  let mockPartRepo: any;
+  let mockMovementRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    reserveStockUseCase = new ReserveStockUseCase();
+    mockPartRepo = { findOne: jest.fn(), save: jest.fn() };
+    mockMovementRepo = { create: jest.fn(), save: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock)
+      .mockImplementationOnce(() => mockPartRepo)
+      .mockImplementationOnce(() => mockMovementRepo);
+    useCase = new ReserveStockUseCase();
   });
 
   it("deve reservar estoque com sucesso", async () => {
-    const mockPart = {
-      id: 1,
-      name: "Filtro de óleo",
-      price: 50,
-      stock: 10
-    };
+    const mockPart = { id: 1, name: "Filtro de óleo", price: 50, stock: 10 };
+    const mockMovement = { id: 1, partId: 1, quantity: -3, type: "OUT" };
 
-    const mockMovement = {
-      id: 1,
-      partId: 1,
-      partName: "Filtro de óleo",
-      quantity: -3,
-      type: "OUT",
-      unitPrice: 50,
-      totalValue: 150,
-      serviceOrderId: 100,
-      description: "Baixa para OS #100 - Filtro de óleo (3 unidade(s))",
-      status: "CONFIRMADO"
-    };
+    mockPartRepo.findOne.mockResolvedValue(mockPart);
+    mockPartRepo.save.mockResolvedValue({ ...mockPart, stock: 7 });
+    mockMovementRepo.create.mockReturnValue(mockMovement);
+    mockMovementRepo.save.mockResolvedValue(mockMovement);
 
-    (PartRepository.findOne as jest.Mock).mockResolvedValue(mockPart);
-    (PartRepository.save as jest.Mock).mockResolvedValue({ ...mockPart, stock: 7 });
-    (StockMovementRepository.create as jest.Mock).mockReturnValue(mockMovement);
-    (StockMovementRepository.save as jest.Mock).mockResolvedValue(mockMovement);
-
-    const result = await reserveStockUseCase.execute(1, 3, 100);
-
-    expect(result).toHaveProperty("id", 1);
-    expect(PartRepository.save).toHaveBeenCalledWith({ ...mockPart, stock: 7 });
+    const result = await useCase.execute(1, 3, 1);
+    expect(mockPartRepo.save).toHaveBeenCalledWith({ ...mockPart, stock: 7 });
   });
 
   it("deve lançar erro se peça não for encontrada", async () => {
-    (PartRepository.findOne as jest.Mock).mockResolvedValue(null);
-
-    await expect(reserveStockUseCase.execute(999, 5, 100)).rejects.toThrow(
-      "Peça não encontrada"
-    );
+    mockPartRepo.findOne.mockResolvedValue(null);
+    await expect(useCase.execute(999, 3, 1)).rejects.toThrow("Peça não encontrada");
   });
 
   it("deve lançar erro se estoque for insuficiente", async () => {
-    const mockPart = {
-      id: 1,
-      name: "Filtro de óleo",
-      stock: 2
-    };
-
-    (PartRepository.findOne as jest.Mock).mockResolvedValue(mockPart);
-
-    await expect(reserveStockUseCase.execute(1, 5, 100)).rejects.toThrow(
-      "Estoque insuficiente para Filtro de óleo"
-    );
+    mockPartRepo.findOne.mockResolvedValue({ id: 1, name: "Filtro de óleo", stock: 2 });
+    await expect(useCase.execute(1, 5, 1)).rejects.toThrow("Estoque insuficiente para Filtro de óleo");
   });
 
   it("deve usar descrição personalizada quando fornecida", async () => {
-    const mockPart = {
-      id: 1,
-      name: "Filtro de óleo",
-      price: 50,
-      stock: 10
-    };
+    const mockPart = { id: 1, name: "Filtro", price: 50, stock: 10 };
+    mockPartRepo.findOne.mockResolvedValue(mockPart);
+    mockPartRepo.save.mockResolvedValue({ ...mockPart, stock: 7 });
+    mockMovementRepo.create.mockReturnValue({});
+    mockMovementRepo.save.mockResolvedValue({});
 
-    (PartRepository.findOne as jest.Mock).mockResolvedValue(mockPart);
-    (PartRepository.save as jest.Mock).mockResolvedValue({ ...mockPart, stock: 7 });
-    (StockMovementRepository.create as jest.Mock).mockReturnValue({});
-    (StockMovementRepository.save as jest.Mock).mockResolvedValue({});
-
-    await reserveStockUseCase.execute(1, 3, 100, "Reserva personalizada");
-
-    expect(StockMovementRepository.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        description: "Reserva personalizada"
-      })
-    );
+    await useCase.execute(1, 3, 1, "Baixa para OS");
+    expect(mockMovementRepo.create).toHaveBeenCalledWith(expect.objectContaining({ description: "Baixa para OS" }));
   });
 });

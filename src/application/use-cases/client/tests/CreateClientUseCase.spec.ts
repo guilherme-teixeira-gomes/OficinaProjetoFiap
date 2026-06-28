@@ -1,52 +1,37 @@
-import { ClientRepository } from "../../../../infrastructure/repositories/ClientRepository";
 import { CreateClientUseCase } from "../CreateClientUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-jest.mock("../../../../infrastructure/repositories/ClientRepository", () => ({
-  ClientRepository: {
-    findOne: jest.fn(),
-    create: jest.fn(),
-    save: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("CreateClientUseCase", () => {
-  let createClientUseCase: CreateClientUseCase;
+  let useCase: CreateClientUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    createClientUseCase = new CreateClientUseCase();
+    mockRepo = { findOne: jest.fn(), create: jest.fn(), save: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new CreateClientUseCase();
   });
 
   it("deve criar cliente com sucesso", async () => {
-    (ClientRepository.findOne as jest.Mock).mockResolvedValue(null);
-
     const mockClient = { id: 1, name: "Gui", document: "123", email: "teste@email.com", phone: "999" };
+    mockRepo.findOne.mockResolvedValue(null);
+    mockRepo.create.mockReturnValue(mockClient);
+    mockRepo.save.mockResolvedValue(mockClient);
 
-    (ClientRepository.create as jest.Mock).mockReturnValue(mockClient);
-    (ClientRepository.save as jest.Mock).mockResolvedValue(mockClient);
+    const result = await useCase.execute({ name: "Gui", document: "123", email: "teste@email.com", phone: "999" });
 
-    const result = await createClientUseCase.execute({
-      name: "Gui",
-      document: "123",
-      email: "teste@email.com",
-      phone: "999"
-    });
-
-    expect(ClientRepository.create).toHaveBeenCalled();
-    expect(ClientRepository.save).toHaveBeenCalled();
+    expect(mockRepo.create).toHaveBeenCalled();
+    expect(mockRepo.save).toHaveBeenCalled();
     expect(result).toHaveProperty("id", 1);
   });
 
   it("deve lançar erro se cliente já existir", async () => {
-    (ClientRepository.findOne as jest.Mock).mockResolvedValue({ id: 1, document: "123" });
+    mockRepo.findOne.mockResolvedValue({ id: 1, document: "123" });
 
-    await expect(
-      createClientUseCase.execute({
-        name: "Gui",
-        document: "123",
-        email: "teste@email.com",
-        phone: "999"
-      })
-    ).rejects.toThrow("Cliente já cadastrado");
+    await expect(useCase.execute({ name: "Gui", document: "123", email: "teste@email.com", phone: "999" }))
+      .rejects.toThrow("Cliente já cadastrado");
   });
 });

@@ -12,7 +12,6 @@ export class UpdateServiceOrderStatusUseCase {
       throw new Error(`Status inválido. Use: ${validStatus.join(", ")}`);
     }
 
-    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
     const orderRepo = AppDataSource.getRepository(ServiceOrder);
     const order = await orderRepo.findOne({ where: { id } });
     if (!order) throw new Error("Ordem de serviço não encontrada");

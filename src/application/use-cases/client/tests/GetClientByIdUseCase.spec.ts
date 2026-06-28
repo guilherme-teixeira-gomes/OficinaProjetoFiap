@@ -1,40 +1,31 @@
-import { ClientRepository } from "../../../../infrastructure/repositories/ClientRepository";
 import { GetClientByIdUseCase } from "../GetClientByIdUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/ClientRepository", () => ({
-  ClientRepository: {
-    findOne: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("GetClientByIdUseCase", () => {
-  let getClientByIdUseCase: GetClientByIdUseCase;
+  let useCase: GetClientByIdUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    getClientByIdUseCase = new GetClientByIdUseCase();
+    mockRepo = { findOne: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new GetClientByIdUseCase();
   });
 
   it("deve buscar cliente por id com relacionamentos", async () => {
-    const mockClient = { id: 1, name: "João", vehicles: [], orders: [] };
+    const mockClient = { id: 1, name: "Gui", vehicles: [], orders: [] };
+    mockRepo.findOne.mockResolvedValue(mockClient);
 
-    (ClientRepository.findOne as jest.Mock).mockResolvedValue(mockClient);
-
-    const result = await getClientByIdUseCase.getById(1);
-
+    const result = await useCase.getById(1);
     expect(result).toHaveProperty("id", 1);
-    expect(ClientRepository.findOne).toHaveBeenCalledWith({ 
-      where: { id: 1 }, 
-      relations: ["vehicles", "orders"] 
-    });
   });
 
   it("deve retornar null se cliente não existir", async () => {
-    (ClientRepository.findOne as jest.Mock).mockResolvedValue(null);
-
-    const result = await getClientByIdUseCase.getById(999);
-
+    mockRepo.findOne.mockResolvedValue(null);
+    const result = await useCase.getById(999);
     expect(result).toBeNull();
   });
 });

@@ -1,39 +1,29 @@
-import { PartRepository } from "../../../../infrastructure/repositories/PartRepository";
 import { ListPartsUseCase } from "../ListPartsUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
-  PartRepository: {
-    find: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("ListPartsUseCase", () => {
-  let listPartsUseCase: ListPartsUseCase;
+  let useCase: ListPartsUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    listPartsUseCase = new ListPartsUseCase();
+    mockRepo = { find: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new ListPartsUseCase();
   });
 
   it("deve listar todas as peças", async () => {
-    const mockParts = [
-      { id: 1, name: "Filtro", price: 50 },
-      { id: 2, name: "Pastilha", price: 80 }
-    ];
-
-    (PartRepository.find as jest.Mock).mockResolvedValue(mockParts);
-
-    const result = await listPartsUseCase.list();
-
+    mockRepo.find.mockResolvedValue([{ id: 1 }, { id: 2 }]);
+    const result = await useCase.list();
     expect(result).toHaveLength(2);
   });
 
   it("deve retornar array vazio quando não há peças", async () => {
-    (PartRepository.find as jest.Mock).mockResolvedValue([]);
-
-    const result = await listPartsUseCase.list();
-
-    expect(result).toEqual([]);
+    mockRepo.find.mockResolvedValue([]);
+    const result = await useCase.list();
+    expect(result).toHaveLength(0);
   });
 });

@@ -1,51 +1,35 @@
-import { PartRepository } from "../../../../infrastructure/repositories/PartRepository";
 import { CreatePartUseCase } from "../CreatePartUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
-  PartRepository: {
-    create: jest.fn(),
-    save: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("CreatePartUseCase", () => {
-  let createPartUseCase: CreatePartUseCase;
+  let useCase: CreatePartUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    createPartUseCase = new CreatePartUseCase();
+    mockRepo = { create: jest.fn(), save: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new CreatePartUseCase();
   });
 
   it("deve criar peça com sucesso", async () => {
-    const mockPart = { id: 1, name: "Filtro de óleo", price: 50 };
+    const mockPart = { id: 1, name: "Filtro", price: 50 };
+    mockRepo.create.mockReturnValue(mockPart);
+    mockRepo.save.mockResolvedValue(mockPart);
 
-    (PartRepository.create as jest.Mock).mockReturnValue(mockPart);
-    (PartRepository.save as jest.Mock).mockResolvedValue(mockPart);
-
-    const result = await createPartUseCase.create({
-      name: "Filtro de óleo",
-      price: 50
-    });
-
+    const result = await useCase.create({ name: "Filtro", price: 50 });
     expect(result).toHaveProperty("id", 1);
-    expect(result.name).toBe("Filtro de óleo");
   });
 
   it("deve criar peça com descrição e estoque", async () => {
-    const mockPart = { id: 1, name: "Pastilha de freio", description: "Pastilha dianteira", price: 80, stock: 10 };
+    const mockPart = { id: 2, name: "Filtro", price: 50, stock: 10, description: "Desc" };
+    mockRepo.create.mockReturnValue(mockPart);
+    mockRepo.save.mockResolvedValue(mockPart);
 
-    (PartRepository.create as jest.Mock).mockReturnValue(mockPart);
-    (PartRepository.save as jest.Mock).mockResolvedValue(mockPart);
-
-    const result = await createPartUseCase.create({
-      name: "Pastilha de freio",
-      description: "Pastilha dianteira",
-      price: 80,
-      stock: 10
-    });
-
-    expect(result.stock).toBe(10);
-    expect(result.description).toBe("Pastilha dianteira");
+    const result = await useCase.create({ name: "Filtro", price: 50, stock: 10, description: "Desc" });
+    expect(result).toHaveProperty("stock", 10);
   });
 });

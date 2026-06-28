@@ -1,38 +1,31 @@
-import { ServiceOrderRepository } from "../../../../infrastructure/repositories/ServiceOrderRepository";
 import { ListServiceOrdersUseCase } from "../ListServiceOrdersUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/ServiceOrderRepository", () => ({
-  ServiceOrderRepository: {
-    find: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("ListServiceOrdersUseCase", () => {
-  let listServiceOrdersUseCase: ListServiceOrdersUseCase;
+  let useCase: ListServiceOrdersUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    listServiceOrdersUseCase = new ListServiceOrdersUseCase();
+    mockRepo = { find: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new ListServiceOrdersUseCase();
   });
 
   it("deve listar ordens", async () => {
-    (ServiceOrderRepository.find as jest.Mock).mockResolvedValue([
-      {
-        id: 1,
-        services: [{ price: "100" }],
-        parts: [{ price: "50" }]
-      },
-      {
-        id: 2,
-        services: [],
-        parts: []
-      }
-    ]);
+    const mockOrders = [
+      { id: 1, status: "RECEBIDA", services: [{ price: 100 }], parts: [], createdAt: new Date() },
+      { id: 2, status: "EM_EXECUCAO", services: [], parts: [], createdAt: new Date() }
+    ];
+    mockRepo.find.mockResolvedValue(mockOrders);
 
-    const result = await listServiceOrdersUseCase.execute();
-
+    const result = await useCase.execute();
     expect(result.length).toBe(2);
-    expect(result[0].services[0].price).toBe(100);
+    // EM_EXECUCAO vem primeiro na ordenação
+    expect(result[0].status).toBe("EM_EXECUCAO");
+    expect(result[1].services[0].price).toBe(100);
   });
 });

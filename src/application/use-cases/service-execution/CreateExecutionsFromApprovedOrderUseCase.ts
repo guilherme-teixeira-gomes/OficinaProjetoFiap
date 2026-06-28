@@ -4,7 +4,6 @@ import { ServiceExecution } from "../../../domain/entities/ServiceExecution";
 
 export class CreateExecutionsFromApprovedOrderUseCase {
   async execute(serviceOrderId: number) {
-    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
     const orderRepo = AppDataSource.getRepository(ServiceOrder);
     const executionRepo = AppDataSource.getRepository(ServiceExecution);
 

@@ -5,7 +5,6 @@ import { ServiceOrder } from "../../../domain/entities/ServiceOrder";
 export class GetServiceOrderTimelineUseCase {
   async execute(serviceOrderId: number) {
     const executionRepo = AppDataSource.getRepository(ServiceExecution);
-    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
     const orderRepo = AppDataSource.getRepository(ServiceOrder);
 
     const executions = await executionRepo.find({ where: { serviceOrderId }, relations: ["service"], order: { startedAt: "ASC" } });

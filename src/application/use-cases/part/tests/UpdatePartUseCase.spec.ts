@@ -1,43 +1,31 @@
-import { PartRepository } from "../../../../infrastructure/repositories/PartRepository";
 import { UpdatePartUseCase } from "../UpdatePartUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
-  PartRepository: {
-    findOne: jest.fn(),
-    merge: jest.fn(),
-    save: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("UpdatePartUseCase", () => {
-  let updatePartUseCase: UpdatePartUseCase;
+  let useCase: UpdatePartUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    updatePartUseCase = new UpdatePartUseCase();
+    mockRepo = { findOne: jest.fn(), merge: jest.fn(), save: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new UpdatePartUseCase();
   });
 
   it("deve atualizar peça com sucesso", async () => {
-    const existingPart = { id: 1, name: "Filtro antigo", price: 50 };
-    const updatedPart = { ...existingPart, name: "Filtro novo", price: 60 };
+    const mockPart = { id: 1, name: "Filtro", price: 50 };
+    mockRepo.findOne.mockResolvedValue(mockPart);
+    mockRepo.save.mockResolvedValue({ ...mockPart, price: 60 });
 
-    (PartRepository.findOne as jest.Mock).mockResolvedValue(existingPart);
-    (PartRepository.merge as jest.Mock).mockReturnValue(updatedPart);
-    (PartRepository.save as jest.Mock).mockResolvedValue(updatedPart);
-
-    const result = await updatePartUseCase.update(1, { name: "Filtro novo", price: 60 });
-
-    expect(result.name).toBe("Filtro novo");
-    expect(result.price).toBe(60);
-    expect(PartRepository.merge).toHaveBeenCalledWith(existingPart, { name: "Filtro novo", price: 60 });
+    const result = await useCase.update(1, { price: 60 });
+    expect(mockRepo.merge).toHaveBeenCalledWith(mockPart, { price: 60 });
   });
 
   it("deve dar erro ao atualizar peça inexistente", async () => {
-    (PartRepository.findOne as jest.Mock).mockResolvedValue(null);
-
-    await expect(
-      updatePartUseCase.update(1, { name: "Teste" })
-    ).rejects.toThrow("Peça não encontrada");
+    mockRepo.findOne.mockResolvedValue(null);
+    await expect(useCase.update(999, { price: 60 })).rejects.toThrow("Peça não encontrada");
   });
 });

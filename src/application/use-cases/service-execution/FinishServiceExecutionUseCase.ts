@@ -11,7 +11,6 @@ interface FinishServiceDTO {
 export class FinishServiceExecutionUseCase {
   async execute(data: FinishServiceDTO) {
     const executionRepo = AppDataSource.getRepository(ServiceExecution);
-    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
     const orderRepo = AppDataSource.getRepository(ServiceOrder);
 
     const execution = await executionRepo.findOne({

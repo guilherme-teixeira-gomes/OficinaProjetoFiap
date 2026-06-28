@@ -7,8 +7,6 @@ import { CreateServiceOrderDTO } from "../../../shared/types/service-order.types
 
 export class CreateServiceOrderUseCase {
   async create(data: CreateServiceOrderDTO) {
-    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
-    if (!AppDataSource.isInitialized) await AppDataSource.initialize();
     const orderRepo = AppDataSource.getRepository(ServiceOrder);
     const clientRepo = AppDataSource.getRepository(Client);
     const vehicleRepo = AppDataSource.getRepository(Vehicle);

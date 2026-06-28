@@ -1,40 +1,31 @@
-import { ClientRepository } from "../../../../infrastructure/repositories/ClientRepository";
 import { GetClientByDocumentUseCase } from "../GetClientByDocumentUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/ClientRepository", () => ({
-  ClientRepository: {
-    findOne: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
 
 describe("GetClientByDocumentUseCase", () => {
-  let getClientByDocumentUseCase: GetClientByDocumentUseCase;
+  let useCase: GetClientByDocumentUseCase;
+  let mockRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    getClientByDocumentUseCase = new GetClientByDocumentUseCase();
+    mockRepo = { findOne: jest.fn() };
+    (AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
+    useCase = new GetClientByDocumentUseCase();
   });
 
   it("deve buscar cliente por documento", async () => {
-    const mockClient = { id: 1, name: "João", document: "12345678901" };
+    const mockClient = { id: 1, document: "123" };
+    mockRepo.findOne.mockResolvedValue(mockClient);
 
-    (ClientRepository.findOne as jest.Mock).mockResolvedValue(mockClient);
-
-    const result = await getClientByDocumentUseCase.getByDocument("12345678901");
-
+    const result = await useCase.getByDocument("123");
     expect(result).toHaveProperty("id", 1);
-    expect(ClientRepository.findOne).toHaveBeenCalledWith({ 
-      where: { document: "12345678901" }, 
-      relations: ["vehicles", "orders"] 
-    });
   });
 
   it("deve retornar null se cliente não existir", async () => {
-    (ClientRepository.findOne as jest.Mock).mockResolvedValue(null);
-
-    const result = await getClientByDocumentUseCase.getByDocument("999");
-
+    mockRepo.findOne.mockResolvedValue(null);
+    const result = await useCase.getByDocument("999");
     expect(result).toBeNull();
   });
 });

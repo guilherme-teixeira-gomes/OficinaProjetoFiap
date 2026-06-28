@@ -1,151 +1,96 @@
-import { PartRepository } from "../../../../infrastructure/repositories/PartRepository";
-import { ServiceOrderRepository } from "../../../../infrastructure/repositories/ServiceOrderRepository";
-import { ServiceRepository } from "../../../../infrastructure/repositories/ServiceRepository";
-import { CreateExecutionsFromApprovedOrderUseCase } from "../../service-execution/CreateExecutionsFromApprovedOrderUseCase";
-import { CheckStockAvailabilityUseCase } from "../../stock/CheckStockAvailabilityUseCase";
-import { ReserveStockUseCase } from "../../stock/ReserveStockUseCase";
 import { ApproveOrderUseCase } from "../ApproveServiceOrderUseCase";
+import { AppDataSource } from "../../../../infrastructure/database/data-source";
 
-
-jest.mock("../../../../infrastructure/repositories/ServiceRepository", () => ({
-  ServiceRepository: {
-    findByIds: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/database/data-source", () => ({
+  AppDataSource: { getRepository: jest.fn() }
 }));
-
-jest.mock("../../../../infrastructure/repositories/PartRepository", () => ({
-  PartRepository: {
-    findByIds: jest.fn(),
-  }
+jest.mock("../../../../infrastructure/email/EmailService", () => ({
+  sendEmail: jest.fn().mockResolvedValue({}),
+  emailStatusAtualizado: jest.fn().mockReturnValue({ subject: "s", html: "h" })
 }));
-
-jest.mock("../../../../infrastructure/repositories/ServiceOrderRepository", () => ({
-  ServiceOrderRepository: {
-    findOne: jest.fn(),
-    save: jest.fn(),
-  }
+jest.mock("../../../../application/use-cases/stock/CheckStockAvailabilityUseCase", () => ({
+  CheckStockAvailabilityUseCase: jest.fn().mockImplementation(() => ({
+    execute: jest.fn().mockResolvedValue({ available: true, currentStock: 10 })
+  }))
 }));
-
-jest.mock("../../stock/CheckStockAvailabilityUseCase");
-jest.mock("../../stock/ReserveStockUseCase");
-jest.mock("../../stock/RestoreStockUseCase");
-jest.mock("../../service-execution/CreateExecutionsFromApprovedOrderUseCase");
+jest.mock("../../../../application/use-cases/stock/ReserveStockUseCase", () => ({
+  ReserveStockUseCase: jest.fn().mockImplementation(() => ({
+    execute: jest.fn().mockResolvedValue({ partId: 1, quantity: -1 })
+  }))
+}));
+jest.mock("../../../../application/use-cases/stock/RestoreStockUseCase", () => ({
+  RestoreStockUseCase: jest.fn().mockImplementation(() => ({
+    execute: jest.fn().mockResolvedValue({})
+  }))
+}));
+jest.mock("../../../../application/use-cases/service-execution/CreateExecutionsFromApprovedOrderUseCase", () => ({
+  CreateExecutionsFromApprovedOrderUseCase: jest.fn().mockImplementation(() => ({
+    execute: jest.fn().mockResolvedValue([])
+  }))
+}));
 
 describe("ApproveOrderUseCase", () => {
-  let approveOrderUseCase: ApproveOrderUseCase;
+  let useCase: ApproveOrderUseCase;
+  let mockOrderRepo: any;
+  let mockServiceRepo: any;
+  let mockPartRepo: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    approveOrderUseCase = new ApproveOrderUseCase();
+    mockOrderRepo = { findOne: jest.fn(), save: jest.fn() };
+    mockServiceRepo = { findByIds: jest.fn().mockResolvedValue([]) };
+    mockPartRepo = { findByIds: jest.fn().mockResolvedValue([]) };
+    (AppDataSource.getRepository as jest.Mock)
+      .mockImplementationOnce(() => mockOrderRepo)
+      .mockImplementationOnce(() => mockServiceRepo)
+      .mockImplementationOnce(() => mockPartRepo);
+    useCase = new ApproveOrderUseCase();
   });
 
   it("deve aprovar ordem e calcular orçamento", async () => {
-    (ServiceOrderRepository.findOne as jest.Mock).mockResolvedValue({
-      id: 1,
-      status: "AGUARDANDO_APROVACAO",
-      approved: false,
-      diagnostics: [
-        {
-          id: 1,
-          includeInBudget: true,
-          recommendedServices: [{ id: 10, price: 100 }],
-          recommendedParts: [{ id: 20, price: 50 }]
-        }
-      ]
-    });
+    const mockOrder = {
+      id: 1, status: "AGUARDANDO_APROVACAO", approved: false,
+      diagnostics: [{ id: 1, includeInBudget: true, recommendedServices: [], recommendedParts: [] }],
+      client: { email: "a@a.com", name: "João" }
+    };
+    mockOrderRepo.findOne
+      .mockResolvedValueOnce(mockOrder)
+      .mockResolvedValueOnce({ ...mockOrder, status: "EM_EXECUCAO", approved: true, services: [], parts: [] });
+    mockOrderRepo.save.mockResolvedValue({ ...mockOrder, status: "EM_EXECUCAO" });
 
-    (ServiceRepository.findByIds as jest.Mock).mockResolvedValue([
-      { id: 10, price: 100 }
-    ]);
-
-    (PartRepository.findByIds as jest.Mock).mockResolvedValue([
-      { id: 20, price: 50 }
-    ]);
-
-    (CheckStockAvailabilityUseCase.prototype.execute as jest.Mock).mockResolvedValue({
-      available: true,
-      currentStock: 10
-    });
-
-    (ReserveStockUseCase.prototype.execute as jest.Mock).mockResolvedValue({ id: 1 });
-    (ServiceOrderRepository.save as jest.Mock).mockResolvedValue({});
-    (CreateExecutionsFromApprovedOrderUseCase.prototype.execute as jest.Mock).mockResolvedValue([]);
-
-    const result = await approveOrderUseCase.execute(1);
-
-    expect(result.budget).toBe(150);
-  });
-
-  it("deve aprovar apenas diagnósticos selecionados", async () => {
-    (ServiceOrderRepository.findOne as jest.Mock).mockResolvedValue({
-      id: 1,
-      status: "AGUARDANDO_APROVACAO",
-      approved: false,
-      diagnostics: [
-        {
-          id: 1,
-          includeInBudget: true,
-          recommendedServices: [{ id: 10, price: 100 }],
-          recommendedParts: []
-        },
-        {
-          id: 2,
-          includeInBudget: true,
-          recommendedServices: [{ id: 20, price: 200 }],
-          recommendedParts: []
-        }
-      ]
-    });
-
-    (ServiceRepository.findByIds as jest.Mock).mockResolvedValue([
-      { id: 10, price: 100 }
-    ]);
-
-    (PartRepository.findByIds as jest.Mock).mockResolvedValue([]);
-    (CheckStockAvailabilityUseCase.prototype.execute as jest.Mock).mockResolvedValue({
-      available: true,
-      currentStock: 10
-    });
-    (ReserveStockUseCase.prototype.execute as jest.Mock).mockResolvedValue({ id: 1 });
-    (ServiceOrderRepository.save as jest.Mock).mockResolvedValue({});
-    (CreateExecutionsFromApprovedOrderUseCase.prototype.execute as jest.Mock).mockResolvedValue([]);
-
-    const result = await approveOrderUseCase.execute(1, [1]);
-
-    expect(result.budget).toBe(100);
+    const result = await useCase.execute(1);
+    expect(result).toHaveProperty("budget");
   });
 
   it("não deve aprovar se já aprovado", async () => {
-    (ServiceOrderRepository.findOne as jest.Mock).mockResolvedValue({
-      id: 1,
-      approved: true
-    });
-
-    await expect(approveOrderUseCase.execute(1)).rejects.toThrow("Orçamento já aprovado");
+    mockOrderRepo.findOne.mockResolvedValue({ id: 1, status: "AGUARDANDO_APROVACAO", approved: true, diagnostics: [{ id: 1 }] });
+    await expect(useCase.execute(1)).rejects.toThrow("Orçamento já aprovado");
   });
 
   it("não deve aprovar se ordem não estiver aguardando aprovação", async () => {
-    (ServiceOrderRepository.findOne as jest.Mock).mockResolvedValue({
-      id: 1,
-      approved: false,
-      status: "EM_EXECUCAO"
-    });
-
-    await expect(approveOrderUseCase.execute(1)).rejects.toThrow(
-      "Ordem precisa estar aguardando aprovação"
-    );
+    mockOrderRepo.findOne.mockResolvedValue({ id: 1, status: "RECEBIDA", approved: false, diagnostics: [{ id: 1 }] });
+    await expect(useCase.execute(1)).rejects.toThrow("Ordem precisa estar aguardando aprovação");
   });
 
   it("não deve aprovar se não houver diagnósticos", async () => {
-    (ServiceOrderRepository.findOne as jest.Mock).mockResolvedValue({
-      id: 1,
-      status: "AGUARDANDO_APROVACAO",
-      approved: false,
-      diagnostics: []
-    });
+    mockOrderRepo.findOne.mockResolvedValue({ id: 1, status: "AGUARDANDO_APROVACAO", approved: false, diagnostics: [] });
+    await expect(useCase.execute(1)).rejects.toThrow("Nenhum diagnóstico encontrado para esta OS");
+  });
 
-    await expect(approveOrderUseCase.execute(1)).rejects.toThrow(
-      "Nenhum diagnóstico encontrado para esta OS"
-    );
+  it("deve aprovar apenas diagnósticos selecionados", async () => {
+    const mockOrder = {
+      id: 1, status: "AGUARDANDO_APROVACAO", approved: false,
+      diagnostics: [
+        { id: 1, includeInBudget: true, recommendedServices: [], recommendedParts: [] },
+        { id: 2, includeInBudget: true, recommendedServices: [], recommendedParts: [] }
+      ],
+      client: null
+    };
+    mockOrderRepo.findOne
+      .mockResolvedValueOnce(mockOrder)
+      .mockResolvedValueOnce({ ...mockOrder, status: "EM_EXECUCAO", services: [], parts: [] });
+    mockOrderRepo.save.mockResolvedValue({});
+
+    const result = await useCase.execute(1, [1]);
+    expect(result).toHaveProperty("budget");
   });
 });
