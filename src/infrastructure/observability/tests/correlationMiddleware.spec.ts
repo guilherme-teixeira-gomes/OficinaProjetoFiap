@@ -1,5 +1,5 @@
-import { correlationMiddleware } from "../src/infrastructure/observability/correlationMiddleware";
-import { requestContext } from "../src/infrastructure/observability/logger";
+import { correlationMiddleware } from "../correlationMiddleware";
+import { requestContext } from "../logger";
 
 describe("correlationMiddleware", () => {
   const mockRes = () => {

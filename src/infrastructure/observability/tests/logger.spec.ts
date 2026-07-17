@@ -1,4 +1,5 @@
-import { logger, requestContext } from "../src/infrastructure/observability/logger";
+import { logger, requestContext } from "../logger";
+
 
 describe("logger estruturado", () => {
   let output: string[];
