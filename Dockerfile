@@ -26,6 +26,7 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/newrelic.js ./
 
 # Ajusta permissões
 RUN chown -R appuser:appgroup /app
@@ -37,4 +38,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
   CMD wget -qO- http://localhost:3000/ || exit 1
 
-CMD ["node", "dist/index.js"]
+CMD ["node", "-r", "newrelic", "dist/index.js"]
