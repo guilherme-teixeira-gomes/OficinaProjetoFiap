@@ -3,11 +3,19 @@ import jwt from "jsonwebtoken";
 import { UnauthorizedError } from "../../../shared/helpers/api-errors";
 import { UserRepository } from "../../repositories/UserRepository";
 
+const JWT_SECRET = process.env.JWT_PASS!;
 
-const JWT_SECRET = process.env.JWT_PASS!; 
-
-type JwtPayload = {
+// Token de usuário interno (mecânico/admin) — emitido pelo login da aplicação
+type UserJwtPayload = {
   id: number;
+};
+
+// Token de cliente — emitido pela Lambda de autenticação por CPF
+type ClientJwtPayload = {
+  sub: string;
+  cpf: string;
+  name: string;
+  type: "client";
 };
 
 export async function AuthMiddleware(
@@ -31,7 +39,22 @@ export async function AuthMiddleware(
       throw new UnauthorizedError("Token inválido");
     }
 
-    const { id } = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const decoded = jwt.verify(token, JWT_SECRET) as UserJwtPayload | ClientJwtPayload;
+
+    // Token de cliente (emitido pela Lambda de autenticação por CPF)
+    if ((decoded as ClientJwtPayload).type === "client") {
+      const clientToken = decoded as ClientJwtPayload;
+      (req as any).client = {
+        id: Number(clientToken.sub),
+        cpf: clientToken.cpf,
+        name: clientToken.name
+      };
+      (req as any).authType = "client";
+      return next();
+    }
+
+    // Token de usuário interno (mecânico/admin) — comportamento original
+    const { id } = decoded as UserJwtPayload;
 
     const user = await UserRepository.findOne({
       where: { id },
@@ -42,10 +65,11 @@ export async function AuthMiddleware(
     }
 
     (req as any).user = { id: user.id, name: user.name, email: user.email, role: user.role };
+    (req as any).authType = "user";
 
     next();
   } catch (error: any) {
-    if (error.name === "JsonWebTokenError" || error.statusCode === 401) {
+    if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError" || error.statusCode === 401) {
       res.status(401).json({ message: "Token inválido ou expirado." });
     } else {
       res
