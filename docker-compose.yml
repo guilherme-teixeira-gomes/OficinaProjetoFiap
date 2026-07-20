@@ -18,6 +18,8 @@ services:
       SMTP_USER: ${SMTP_USER:-oran94@ethereal.email}
       SMTP_PASS: ${SMTP_PASS:-YEdm6na527FACPxEyK}
       APP_URL: http://localhost:3000
+      NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
+      NEW_RELIC_APP_NAME: oficina-api-local
     restart: unless-stopped
 
   db:

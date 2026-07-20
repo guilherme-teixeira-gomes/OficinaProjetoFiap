@@ -42,3 +42,4 @@ Thumbs.db
 
 # ─── TypeScript ───────────────────────────────────────────────────────────────
 *.tsbuildinfoterraform.zip
+docker-compose.rds.yml
