@@ -41,6 +41,11 @@ spec:
             configMapKeyRef:
               name: oficina-config
               key: DB_NAME
+        - name: DB_SSL
+          valueFrom:
+            configMapKeyRef:
+              name: oficina-config
+              key: DB_SSL
         - name: DB_PASS
           valueFrom:
             secretKeyRef:
@@ -65,6 +70,16 @@ spec:
             secretKeyRef:
               name: oficina-secret
               key: SMTP_PASS
+        - name: NEW_RELIC_LICENSE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: oficina-secret
+              key: NEW_RELIC_LICENSE_KEY
+        - name: NEW_RELIC_APP_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: oficina-config
+              key: NEW_RELIC_APP_NAME
         resources:
           requests:
             memory: "256Mi"
