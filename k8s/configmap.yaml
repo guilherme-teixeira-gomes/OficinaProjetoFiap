@@ -3,9 +3,11 @@ kind: ConfigMap
 metadata:
   name: oficina-config
 data:
-  DB_HOST: "postgres-svc"
+  DB_HOST: "oficina-db.c27a6ak8au8a.us-east-1.rds.amazonaws.com"
   DB_PORT: "5432"
   DB_USER: "postgres"
   DB_NAME: "oficina"
+  DB_SSL: "true"
   NODE_ENV: "production"
   APP_URL: "http://localhost:3000"
+  NEW_RELIC_APP_NAME: "oficina-api"
